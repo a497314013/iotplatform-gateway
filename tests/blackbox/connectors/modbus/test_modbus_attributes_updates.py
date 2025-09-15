@@ -33,7 +33,7 @@ class ModbusAttributesUpdatesTest(BaseTest):
     def setUpClass(cls) -> None:
         super(ModbusAttributesUpdatesTest, cls).setUpClass()
 
-        # ThingsBoard REST API URL
+        # IOTPlatform REST API URL
         url = GatewayDeviceUtil.DEFAULT_URL
 
         # Default Tenant Administrator credentials

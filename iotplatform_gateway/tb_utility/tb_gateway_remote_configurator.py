@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 import inspect
 import os.path
@@ -86,11 +74,11 @@ class RemoteConfigurator:
 
     @property
     def general_configuration(self):
-        return self._config.get('thingsboard', {})
+        return self._config.get('iotplatform', {})
 
     @general_configuration.setter
     def general_configuration(self, config):
-        self._config['thingsboard'].update(config)
+        self._config['iotplatform'].update(config)
 
     @property
     def storage_configuration(self):
@@ -148,7 +136,7 @@ class RemoteConfigurator:
             security_section.pop('accessToken', None)
 
         return {
-            'thingsboard': adopted_general_config,
+            'iotplatform': adopted_general_config,
             'storage': self.storage_configuration,
             'grpc': self.grpc_configuration,
             'connectors': connectors_config
@@ -958,7 +946,7 @@ class RemoteConfigurator:
             return False
 
     def _apply_other_params_config(self, config):
-        self._gateway.config['thingsboard'].update(config)
+        self._gateway.config['iotplatform'].update(config)
 
     def _delete_connectors_from_config(self, connector_list):
         self._config['connectors'] = list(

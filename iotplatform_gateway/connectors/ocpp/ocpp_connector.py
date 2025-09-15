@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 import asyncio
 import base64
@@ -270,7 +258,7 @@ class OcppConnector(Connector, Thread):
                 converted_data = self.DATA_TO_SEND.get()
                 self._gateway.send_to_storage(self.name, self.get_id(), converted_data)
                 self.statistics['MessagesSent'] += 1
-                self._log.info("Data to ThingsBoard: %s", converted_data)
+                self._log.info("Data to IOTPlatform: %s", converted_data)
 
             sleep(.001)
 

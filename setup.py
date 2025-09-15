@@ -1,18 +1,4 @@
-# -*- coding: utf-8 -*-
 
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
 
 from setuptools import setup
 from os import path
@@ -25,12 +11,12 @@ with open(path.join(current_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     version=version.VERSION,
-    name="thingsboard-gateway",
-    author="ThingsBoard",
-    author_email="info@thingsboard.io",
+    name="iotplatform-gateway",
+    author="IOTPlatform",
+    author_email="info@seariiot.io",
     license="Apache Software License (Apache Software License 2.0)",
-    description="Thingsboard Gateway for IoT devices.",
-    url="https://github.com/thingsboard/thingsboard-gateway",
+    description="IOTPlatform Gateway for IoT devices.",
+    url="https://github.com/seariiot/iotplatform-gateway",
     long_description=long_description,
     long_description_content_type="text/markdown",
     include_package_data=True,
@@ -91,10 +77,10 @@ setup(
         'service-identity',
         'psutil'
     ],
-    download_url='https://github.com/thingsboard/thingsboard-gateway/archive/%s.tar.gz' % version.VERSION,
+    download_url='https://github.com/iotplatform/iotplatform-gateway/archive/%s.tar.gz' % version.VERSION,
     entry_points={
         'console_scripts': [
-            'thingsboard-gateway = iotplatform_gateway.tb_gateway:daemon',
+            'iotplatform-gateway = iotplatform_gateway.tb_gateway:daemon',
             'tb-gateway-configurator = iotplatform_gateway.gateway.configuration_wizard:configure',
             'tb-gateway-shell = iotplatform_gateway.gateway.shell:main'
         ]

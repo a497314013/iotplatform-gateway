@@ -1,8 +1,8 @@
 version: '3.4'
 services:
-  # ThingsBoard IoT Gateway Service Configuration
+  # IOTPlatform IoT Gateway Service Configuration
   tb-gateway:
-    image: thingsboard/tb-gateway
+    image: iotplatform/tb-gateway
     container_name: tb-gateway
     restart: always
 

@@ -12,7 +12,7 @@ show_instruction() {
   echo "sudo apt-get install -y python$REQUIRED_MAJOR.$REQUIRED_MINOR python$REQUIRED_MAJOR.$REQUIRED_MINOR-venv"
   echo ""
   echo "CAUTION: Uninstall previously installed package"
-  echo "sudo dpkg --purge python3-thingsboard-gateway"
+  echo "sudo dpkg --purge python3-iotplatform-gateway"
 }
 
 if [ -f /var/lib/iotplatform_gateway/venv.tar.gz ]; then
@@ -41,7 +41,7 @@ if [ -f /var/lib/iotplatform_gateway/venv.tar.gz ]; then
 fi
 
 echo "Postinst: Ensuring required directories exist..."
-for dir in /var/lib/iotplatform_gateway /etc/thingsboard-gateway /var/log/thingsboard-gateway; do
+for dir in /var/lib/iotplatform_gateway /etc/iotplatform-gateway /var/log/iotplatform-gateway; do
     if [ ! -d "$dir" ]; then
         echo "Postinst: Creating $dir..."
         mkdir -p "$dir"
@@ -49,14 +49,14 @@ for dir in /var/lib/iotplatform_gateway /etc/thingsboard-gateway /var/log/things
 done
 
 # Extract configuration files from configs.tar.gz if present
-if [ -f /etc/thingsboard-gateway/configs.tar.gz ]; then
-    if [ ! -d /etc/thingsboard-gateway/config ]; then
+if [ -f /etc/iotplatform-gateway/configs.tar.gz ]; then
+    if [ ! -d /etc/iotplatform-gateway/config ]; then
         echo "Postinst: Extracting configuration files from configs.tar.gz..."
-        tar -xzf /etc/thingsboard-gateway/configs.tar.gz -C /etc/thingsboard-gateway
-        rm -f /etc/thingsboard-gateway/configs.tar.gz
+        tar -xzf /etc/iotplatform-gateway/configs.tar.gz -C /etc/iotplatform-gateway
+        rm -f /etc/iotplatform-gateway/configs.tar.gz
     else
-        echo "Postinst: Directory /etc/thingsboard-gateway/config exists. Creating backup as configs_backup.tar.gz..."
-        tar -czf /etc/thingsboard-gateway/configs_backup.tar.gz -C /etc/thingsboard-gateway config
+        echo "Postinst: Directory /etc/iotplatform-gateway/config exists. Creating backup as configs_backup.tar.gz..."
+        tar -czf /etc/iotplatform-gateway/configs_backup.tar.gz -C /etc/iotplatform-gateway config
     fi
 fi
 
@@ -68,13 +68,13 @@ if [ -f /var/lib/iotplatform_gateway/extensions.tar.gz ]; then
         tar -xzf /var/lib/iotplatform_gateway/extensions.tar.gz -C /var/lib/iotplatform_gateway/extensions
         rm -f /var/lib/iotplatform_gateway/extensions.tar.gz
     else
-        echo "Postinst: Directory /var/lib/thingsboard_gateway/extensions exists. Creating backup as extensions_backup.tar.gz..."
+        echo "Postinst: Directory /var/lib/iotplatform_gateway/extensions exists. Creating backup as extensions_backup.tar.gz..."
         tar -czf /var/lib/iotplatform_gateway/extensions_backup.tar.gz -C /var/lib/iotplatform_gateway extensions
-        echo "Postinst: Removing existing /var/lib/thingsboard_gateway/extensions directory..."
+        echo "Postinst: Removing existing /var/lib/iotplatform_gateway/extensions directory..."
     fi
 fi
 
-VENV_PATH="/var/lib/thingsboard_gateway/venv"
+VENV_PATH="/var/lib/iotplatform_gateway/venv"
 WHEEL_FILE=$(ls /var/lib/iotplatform_gateway/*.whl 2>/dev/null || true)
 
 if [ -f /var/lib/iotplatform_gateway/venv.tar.gz ]; then
@@ -94,7 +94,7 @@ else
     "$VENV_PATH/bin/pip" install --upgrade pip setuptools
     # Install the locally built wheel from /var/lib/iotplatform_gateway.
     if [ -z "$WHEEL_FILE" ]; then
-        echo "Postinst Error: No wheel file found in /var/lib/thingsboard_gateway." >&2
+        echo "Postinst Error: No wheel file found in /var/lib/iotplatform_gateway." >&2
         exit 1
     fi
     echo "Postinst: Installing wheel package: $WHEEL_FILE into the virtual environment..."
@@ -104,14 +104,14 @@ fi
 
 echo "Postinst: Setting ownership for directories..."
 chown -R iotplatform_gateway:iotplatform_gateway /var/lib/iotplatform_gateway
-chown -R iotplatform_gateway:iotplatform_gateway /etc/thingsboard-gateway
-chown -R iotplatform_gateway:iotplatform_gateway /var/log/thingsboard-gateway
+chown -R iotplatform_gateway:iotplatform_gateway /etc/iotplatform-gateway
+chown -R iotplatform_gateway:iotplatform_gateway /var/log/iotplatform-gateway
 
-echo "Postinst: Enabling thingsboard-gateway service..."
-systemctl enable thingsboard-gateway.service
-echo "Postinst: Starting thingsboard-gateway service..."
-systemctl start thingsboard-gateway.service
+echo "Postinst: Enabling iotplatform-gateway service..."
+systemctl enable iotplatform-gateway.service
+echo "Postinst: Starting iotplatform-gateway service..."
+systemctl start iotplatform-gateway.service
 echo ""
-echo -e "Postinst: \e[92mThingsBoard IoT Gateway has been installed successfully.\e[39m"
+echo -e "Postinst: \e[92mIOTPlatform Gateway has been installed successfully.\e[39m"
 echo -e "Have a nice day! \e[95m\e[5m:)\e[25m\e[39m" || echo "Have a nice day!"
 exit 0

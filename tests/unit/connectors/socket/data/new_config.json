@@ -47,7 +47,7 @@
       "attributeUpdates": [
         {
           "encoding": "utf-16",
-          "attributeOnThingsBoard": "sharedName"
+          "attributeOnIOTPlatform": "sharedName"
         }
       ],
       "serverSideRpc": [

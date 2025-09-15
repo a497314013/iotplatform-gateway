@@ -3,14 +3,14 @@ FROM python:3.11-slim AS build
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
-COPY ./thingsboard_gateway /thingsboard_gateway
+COPY ./iotplatform_gateway /iotplatform_gateway
 COPY . .
 
 ENV PATH="/root/.cargo/bin:/root/.local/bin:$PATH" \
     PYTHONPATH="." \
-    configs="/thingsboard_gateway/config" \
-    extensions="/thingsboard_gateway/extensions" \
-    logs="/thingsboard_gateway/logs"
+    configs="/iotplatform_gateway/config" \
+    extensions="/iotplatform_gateway/extensions" \
+    logs="/iotplatform_gateway/logs"
 
 RUN mkdir -p /default-config/config /default-config/extensions/ &&  \
     cp -r /iotplatform_gateway/config/* /default-config/config/ &&  \

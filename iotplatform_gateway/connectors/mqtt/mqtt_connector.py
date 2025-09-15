@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 import random
 import socket
@@ -174,19 +162,19 @@ class MqttConnector(Connector, Thread):
         # Mappings, i.e., telemetry/attributes-push handlers provided by user via configuration file
         self.load_handlers(mapping_key, mandatory_keys[mapping_key], self.__mapping)
 
-        # RPCs, i.e., remote procedure calls (ThingsBoard towards devices) handlers
+        # RPCs, i.e., remote procedure calls (IOTPlatform towards devices) handlers
         self.load_handlers('serverSideRpc', mandatory_keys['serverSideRpc'], self.__server_side_rpc)
 
-        # Connect requests, i.e., telling ThingsBoard that a device is online even if it does not post telemetry
+        # Connect requests, i.e., telling IOTPlatform that a device is online even if it does not post telemetry
         self.load_handlers('connectRequests', mandatory_keys['connectRequests'], self.__connect_requests)
 
-        # Disconnect requests, i.e., telling ThingsBoard that a device is offline even if keep-alive has not expired yet
+        # Disconnect requests, i.e., telling IOTPlatform that a device is offline even if keep-alive has not expired yet
         self.load_handlers('disconnectRequests', mandatory_keys['disconnectRequests'], self.__disconnect_requests)
 
-        # Shared attributes direct requests, i.e., asking ThingsBoard for some shared attribute value
+        # Shared attributes direct requests, i.e., asking IOTPlatform for some shared attribute value
         self.load_handlers('attributeRequests', mandatory_keys['attributeRequests'], self.__attribute_requests)
 
-        # Attributes updates requests, i.e., asking ThingsBoard to send updates about an attribute
+        # Attributes updates requests, i.e., asking IOTPlatform to send updates about an attribute
         self.load_handlers('attributeUpdates', mandatory_keys['attributeUpdates'], self.__attribute_updates)
 
         # Setup topic substitution lists for each class of handlers ----------------------------------------------------
@@ -630,7 +618,7 @@ class MqttConnector(Connector, Thread):
                 if topic_handlers:
                     # Note: every topic may be associated to one or more converter.
                     # This means that a single MQTT message
-                    # may produce more than one message towards ThingsBoard. This also means that I cannot return after
+                    # may produce more than one message towards IOTPlatform. This also means that I cannot return after
                     # the first successful conversion: I got to use all the available ones.
                     # I will use a flag to understand whether at least one converter succeeded
                     request_handled = False
@@ -686,7 +674,7 @@ class MqttConnector(Connector, Thread):
                 # The gateway is expecting for this message => no wildcards here, the topic must be evaluated as is
 
                 if self.__gateway.is_rpc_in_progress(message.topic):
-                    self.__log.info("RPC response arrived. Forwarding it to thingsboard.")
+                    self.__log.info("RPC response arrived. Forwarding it to IOTPlatform.")
                     self.__gateway.rpc_with_reply_processing(message.topic, content)
                     continue
 
@@ -1006,7 +994,7 @@ class MqttConnector(Connector, Thread):
                                                   success_sent=False, to_connector_rpc=True if content.get('device') is None else False) # noqa
                     return
                 if not expects_response or not defines_timeout:
-                    self.__log.info("One-way RPC: sending ack to ThingsBoard immediately")
+                    self.__log.info("One-way RPC: sending ack to IOTPlatform immediately")
                     self.__gateway.send_rpc_reply(device=content.get('device'), req_id=content["data"]["id"],
                                                   success_sent=result is not None, to_connector_rpc=True if content.get('device') is None else False) # noqa
 

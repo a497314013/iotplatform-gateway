@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 import socket
 from queue import Queue
@@ -175,7 +163,7 @@ class GrpcSocketConnector(GwGrpcConnector):
                         GrpcMsgCreator.create_attributes_connector_msg(attributes, device_name=device['deviceName'],
                                                                        basic_message=basic_msg)
                         self._grpc_client.send(basic_msg)
-                        log.info('Data to ThingsBoard %s', converted_data)
+                        log.info('Data to IOTPlatform %s', converted_data)
                 except Exception as e:
                     log.exception(e)
 

@@ -1,17 +1,3 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
-
 import concurrent
 import logging
 import logging.config
@@ -157,8 +143,8 @@ class TBGatewayService:
         self._event_storage = self._event_storage_types[self.__config["storage"]["type"]](self.__config["storage"],
                                                                                           storage_log,
                                                                                           self.stop_event)
-        if self.__config['thingsboard'].get('reportStrategy', {}).get('type') != "DISABLED":
-            self._report_strategy_service = ReportStrategyService(self.__config['thingsboard'],
+        if self.__config['iotplatform'].get('reportStrategy', {}).get('type') != "DISABLED":
+            self._report_strategy_service = ReportStrategyService(self.__config['iotplatform'],
                                                                   self,
                                                                   self.__converted_data_queue,
                                                                   log)
@@ -166,12 +152,12 @@ class TBGatewayService:
             self._report_strategy_service = None
         self.__updater = TBUpdater()
         self.version = self.__updater.get_version()
-        log.info("ThingsBoard IoT gateway version: %s", self.version["current_version"])
+        log.info("IOTPlatform IoT gateway version: %s", self.version["current_version"])
         self.name = ''.join(choice(ascii_lowercase) for _ in range(64))
 
-        self.__latency_debug_mode = self.__config['thingsboard'].get('latencyDebugMode', False)
+        self.__latency_debug_mode = self.__config['iotplatform'].get('latencyDebugMode', False)
 
-        self.__sync_devices_shared_attributes_on_connect = self.__config['thingsboard'].get('syncDevicesSharedAttributesOnConnect', True)
+        self.__sync_devices_shared_attributes_on_connect = self.__config['iotplatform'].get('syncDevicesSharedAttributesOnConnect', True)
 
         self.__connectors_not_found = False
         self._load_connectors()
@@ -186,8 +172,8 @@ class TBGatewayService:
             self.__connectors_init_start_success = False
 
         connection_logger = logging.getLogger('tb_connection')
-        self.quality_of_service = self.__config['thingsboard'].get('qos', 1)
-        self.tb_client = TBClient(self.__config["thingsboard"], self._config_dir, connection_logger)
+        self.quality_of_service = self.__config['iotplatform'].get('qos', 1)
+        self.tb_client = TBClient(self.__config["iotplatform"], self._config_dir, connection_logger)
         self.tb_client.register_service_subscription_callback(self.subscribe_to_required_topics)
         self.tb_client.connect()
         if self.stopped:
@@ -205,7 +191,7 @@ class TBGatewayService:
                                                    target=self.__send_to_storage)
         self.__save_converted_data_thread.start()
 
-        self.init_remote_shell(self.__config["thingsboard"].get("remoteShell"))
+        self.init_remote_shell(self.__config["iotplatform"].get("remoteShell"))
         self.__rpc_processing_thread = Thread(target=self.__send_rpc_reply_processing, daemon=True,
                                               name="RPC processing thread")
         self.__rpc_processing_thread.start()
@@ -219,25 +205,25 @@ class TBGatewayService:
 
         self.init_grpc_service(self.__config.get('grpc'))
 
-        self.__devices_idle_checker = self.__config['thingsboard'].get('checkingDeviceActivity', {})
+        self.__devices_idle_checker = self.__config['iotplatform'].get('checkingDeviceActivity', {})
         self.__check_devices_idle = self.__devices_idle_checker.get('checkDeviceInactivity', False)
         if self.__check_devices_idle:
             thread = Thread(name='Checking devices idle time', target=self.__check_devices_idle_time, daemon=True)
             thread.start()
             log.info('Start checking devices idle time')
 
-        self.init_statistics_service(self.__config['thingsboard'].get('statistics', DEFAULT_STATISTIC))
+        self.init_statistics_service(self.__config['iotplatform'].get('statistics', DEFAULT_STATISTIC))
 
-        self.__min_pack_send_delay_ms = self.__config['thingsboard'].get('minPackSendDelayMS', 50)
+        self.__min_pack_send_delay_ms = self.__config['iotplatform'].get('minPackSendDelayMS', 50)
         self.__min_pack_send_delay_ms = self.__min_pack_send_delay_ms / 1000.0
-        self.__min_pack_size_to_send = self.__config['thingsboard'].get('minPackSizeToSend', 500)
-        self.__max_payload_size_in_bytes = self.__config["thingsboard"].get("maxPayloadSizeBytes", 8196)
+        self.__min_pack_size_to_send = self.__config['iotplatform'].get('minPackSizeToSend', 500)
+        self.__max_payload_size_in_bytes = self.__config["iotplatform"].get("maxPayloadSizeBytes", 8196)
 
         self._send_thread = Thread(target=self.__read_data_from_storage, daemon=True,
-                                   name="Send data to Thingsboard Thread")
+                                   name="Send data to IOTPlatform Thread")
         self._send_thread.start()
 
-        self.init_device_filtering(self.__config['thingsboard'].get('deviceFiltering', DEFAULT_DEVICE_FILTER))
+        self.init_device_filtering(self.__config['iotplatform'].get('deviceFiltering', DEFAULT_DEVICE_FILTER))
 
         log.info("Gateway core started.")
 
@@ -262,7 +248,7 @@ class TBGatewayService:
 
         log.info("Persistent devices loaded.")
 
-        if self.__config['thingsboard'].get('managerEnabled', False):
+        if self.__config['iotplatform'].get('managerEnabled', False):
             manager_address = '/tmp/gateway'
             if path.exists('/tmp/gateway'):
                 try:
@@ -380,7 +366,7 @@ class TBGatewayService:
                         'Please, use JSON configuration instead.')
             log.warning(
                 'See default configuration on '
-                'https://thingsboard.io/docs/iot-gateway/configuration/')
+                'https://iotplatform.io/docs/iot-gateway/configuration/')
 
             config = {}
             try:
@@ -557,7 +543,7 @@ class TBGatewayService:
                         self.__requested_config_after_connect = True
                         self._check_shared_attributes()
 
-                    if (cur_time - connectors_configuration_check_time > self.__config["thingsboard"].get("checkConnectorsConfigurationInSeconds", 60) * 1000 # noqa
+                    if (cur_time - connectors_configuration_check_time > self.__config["iotplatform"].get("checkConnectorsConfigurationInSeconds", 60) * 1000 # noqa
                             and not (self.__remote_configurator is not None and self.__remote_configurator.in_process)):
                         self.check_connector_configuration_updates()
                         connectors_configuration_check_time = time() * 1000
@@ -634,7 +620,7 @@ class TBGatewayService:
                 logger.stop()
 
     def __init_remote_configuration(self, force=False):
-        remote_configuration_enabled = self.__config["thingsboard"].get("remoteConfiguration")
+        remote_configuration_enabled = self.__config["iotplatform"].get("remoteConfiguration")
         if not remote_configuration_enabled and force:
             log.info("Remote configuration is enabled forcibly!")
         if (remote_configuration_enabled or force) and self.__remote_configurator is None:
@@ -1527,7 +1513,7 @@ class TBGatewayService:
                                     average_event_processing_time_str = f"{average_event_processing_time * 1000:.2f} microseconds." # noqa
                                 else:
                                     average_event_processing_time_str = f"{average_event_processing_time:.2f} milliseconds." # noqa
-                                log.debug("Sending data to ThingsBoard, pack size %i processing took %i ,milliseconds. Average event processing time is %s",  # noqa
+                                log.debug("Sending data to IOTPlatform, pack size %i processing took %i ,milliseconds. Average event processing time is %s",  # noqa
                                           events_len,
                                           pack_processing_time,
                                           average_event_processing_time_str) # noqa
@@ -1554,7 +1540,7 @@ class TBGatewayService:
                 else:
                     self.stop_event.wait(1)
             except Exception as e:
-                log.error("Error while sending data to ThingsBoard, it will be resent.", exc_info=e)
+                log.error("Error while sending data to IOTPlatform, it will be resent.", exc_info=e)
                 self.stop_event.wait(1)
         log.info("Send data Thread has been stopped successfully.")
 
@@ -1582,13 +1568,13 @@ class TBGatewayService:
             for success in futures:
                 event_num += 1
                 if event_num % 100 == 0:
-                    log.debug("Confirming %i event sent to ThingsBoard", event_num)
+                    log.debug("Confirming %i event sent to IOTPlatform", event_num)
                 if not success:
                     return False
 
             return True
         except Exception:  # noqa
-            log.debug("Error while sending data to ThingsBoard, it will be resent.")
+            log.debug("Error while sending data to IOTPlatform, it will be resent.")
             return False
 
     @staticmethod
@@ -1596,10 +1582,10 @@ class TBGatewayService:
         try:
             return event.get() == event.TB_ERR_SUCCESS
         except RuntimeError as e:
-            log.error("Error while sending data to ThingsBoard, it will be resent.", exc_info=e)
+            log.error("Error while sending data to IOTPlatform, it will be resent.", exc_info=e)
             return False
         except Exception as e:
-            log.error("Error while sending data to ThingsBoard, it will be resent.", exc_info=e)
+            log.error("Error while sending data to IOTPlatform, it will be resent.", exc_info=e)
             return False
 
     @CollectAllSentTBBytesStatistics(start_stat_type='allBytesSentToTB')
@@ -1627,7 +1613,7 @@ class TBGatewayService:
                                                                               device]["telemetry"]))
                 devices_data_in_event_pack[device] = {"telemetry": [], "attributes": {}}
         except Exception as e:
-            log.error("Error while sending data to ThingsBoard, it will be resent.", exc_info=e)
+            log.error("Error while sending data to IOTPlatform, it will be resent.", exc_info=e)
 
     @CountMessage('msgsReceivedFromPlatform')
     def _rpc_request_handler(self, request_id, content):

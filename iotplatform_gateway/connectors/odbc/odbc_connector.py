@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 from time import time
 from hashlib import sha1
@@ -425,7 +413,7 @@ class OdbcConnector(Connector, Thread):
         file_name = ""
         try:
             # The algorithm of resolving iterator file name is described in
-            # https://thingsboard.io/docs/iot-gateway/config/odbc/#subsection-iterator
+            # https://iotplatform.io/docs/iot-gateway/config/odbc/#subsection-iterator
             # Edit that description whether algorithm is changed.
             file_name += self.__connection.getinfo(pyodbc.SQL_DRIVER_NAME)
             file_name += self.__connection.getinfo(pyodbc.SQL_SERVER_NAME)

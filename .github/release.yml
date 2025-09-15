@@ -2,7 +2,7 @@ exclude-labels:
   - 'Ignore for release'
   - 'bug'
 
-name-template: 'ThingsBoard IoT Gateway v$NEXT_PATCH_VERSION'
+name-template: 'IOTPlatform Gateway v$NEXT_PATCH_VERSION'
 tag-template: '$NEXT_PATCH_VERSION'
 template: |
   $CHANGES

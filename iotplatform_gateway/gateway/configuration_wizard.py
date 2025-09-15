@@ -13,14 +13,14 @@ if exists('iotplatform_gateway/config/tb_gateway.json'):
     CONFIG_PATH = 'iotplatform_gateway/config/tb_gateway.json'
 elif exists(path.dirname(path.abspath(__file__)) + '/config/tb_gateway.json'.replace('/', path.sep)):
     CONFIG_PATH = path.dirname(path.abspath(__file__)) + '/config/tb_gateway.json'.replace('/', path.sep)
-elif exists("/etc/thingsboard-gateway/config/tb_gateway.json".replace('/', path.sep)):
-    CONFIG_PATH = "/etc/thingsboard-gateway/config/tb_gateway.json".replace('/', path.sep)
+elif exists("/etc/iotplatform-gateway/config/tb_gateway.json".replace('/', path.sep)):
+    CONFIG_PATH = "/etc/iotplatform-gateway/config/tb_gateway.json".replace('/', path.sep)
 elif exists('iotplatform_gateway/config/tb_gateway.yaml'):
     CONFIG_PATH = 'iotplatform_gateway/config/tb_gateway.yaml'
 elif exists(path.dirname(path.abspath(__file__)) + '/config/tb_gateway.yaml'.replace('/', path.sep)):
     CONFIG_PATH = path.dirname(path.abspath(__file__)) + '/config/tb_gateway.yaml'.replace('/', path.sep)
-elif exists("/etc/thingsboard-gateway/config/tb_gateway.yaml".replace('/', path.sep)):
-    CONFIG_PATH = "/etc/thingsboard-gateway/config/tb_gateway.yaml".replace('/', path.sep)
+elif exists("/etc/iotplatform-gateway/config/tb_gateway.yaml".replace('/', path.sep)):
+    CONFIG_PATH = "/etc/iotplatform-gateway/config/tb_gateway.yaml".replace('/', path.sep)
 
 class NotNullValidator(Validator):
     def validate(self, document):
@@ -93,7 +93,7 @@ def read_config_file() -> {str: str}:
                     'Please, use JSON configuration instead.')
         print(
             'See default configuration on '
-            'https://thingsboard.io/docs/iot-gateway/configuration/?storageConfig=sqlite#storage-configuration')
+            'https://iotplatform.io/docs/iot-gateway/configuration/?storageConfig=sqlite#storage-configuration')
         try:
             with open(CONFIG_PATH, 'r') as general_config:
                 config_dict = safe_load(general_config)
@@ -117,8 +117,8 @@ def configure():
         default_config = read_config_file()
         connectors_list = []
         grpc_enabled = False
-        base_answers = default_config['thingsboard']
-        statistics_answers = default_config['thingsboard'].get('statistics', {})
+        base_answers = default_config['iotplatform']
+        statistics_answers = default_config['iotplatform'].get('statistics', {})
         grpc_api_answers = default_config.get('grpc', {})
         storage_answers = default_config.get('storage', {})
         qos_and_storage_type_answers = {
@@ -131,15 +131,15 @@ def configure():
             {
                 'type': 'input',
                 'name': 'host',
-                'message': 'ThingsBoard host:',
-                'default': default_config['thingsboard']['host'],
+                'message': 'IOTPlatform host:',
+                'default': default_config['iotplatform']['host'],
                 'validate': HostValidator
             },
             {
                 'type': 'input',
                 'name': 'port',
-                'message': 'ThingsBoard port:',
-                'default': str(default_config['thingsboard']['port']),
+                'message': 'IOTPlatform port:',
+                'default': str(default_config['iotplatform']['port']),
                 'validate': PortValidator,
                 'filter': lambda val: int(val)
             },
@@ -173,7 +173,7 @@ def configure():
                 'type': 'input',
                 'name': 'minPackSendDelayMS',
                 'message': 'Minimal delay between sending messages (milliseconds):',
-                'default': str(default_config['thingsboard']['minPackSendDelayMS']),
+                'default': str(default_config['iotplatform']['minPackSendDelayMS']),
                 'validate': NumberValidator,
                 'filter': lambda val: int(val)
             },
@@ -181,7 +181,7 @@ def configure():
                 'type': 'input',
                 'name': 'maxPayloadSizeBytes',
                 'message': 'Maximum payload size (bytes):',
-                'default': str(default_config['thingsboard']['maxPayloadSizeBytes']),
+                'default': str(default_config['iotplatform']['maxPayloadSizeBytes']),
                 'validate': NumberValidator,
                 'filter': lambda val: int(val)
             },
@@ -189,7 +189,7 @@ def configure():
                 'type': 'input',
                 'name': 'minPackSizeToSend',
                 'message': 'Minimal pack size for sending (bytes):',
-                'default': str(default_config['thingsboard']['minPackSizeToSend']),
+                'default': str(default_config['iotplatform']['minPackSizeToSend']),
                 'validate': NumberValidator,
                 'filter': lambda val: int(val)
             },
@@ -197,13 +197,13 @@ def configure():
                 'type': 'confirm',
                 'name': 'handleDeviceRenaming',
                 'message': 'Handle device renaming?',
-                'default': bool(default_config['thingsboard']['handleDeviceRenaming']),
+                'default': bool(default_config['iotplatform']['handleDeviceRenaming']),
             },
             {
                 'type': 'input',
                 'name': 'checkConnectorsConfigurationInSeconds',
                 'message': 'Connectors config files will check every (sec.):',
-                'default': str(default_config['thingsboard']['checkConnectorsConfigurationInSeconds']),
+                'default': str(default_config['iotplatform']['checkConnectorsConfigurationInSeconds']),
                 'validate': NumberValidator,
                 'filter': lambda val: int(val)
             },
@@ -222,9 +222,9 @@ def configure():
         ]
 
         f = Figlet(font='slant')
-        print(colored(f.renderText('ThingsBoard'), color='white'))
+        print(colored(f.renderText('IOTPlatform'), color='white'))
         print(colored(f.renderText('IoT Gateway'), color='red'))
-        print(colored('Welcome to ThingsBoard IoT Gateway configuration Wizard', 'cyan'))
+        print(colored('Welcome to IOTPlatform Gateway configuration Wizard', 'cyan'))
         print(colored('Let\'s configure you Gateway by answering on questions below ⬇\n'))
 
         simple_setup_answers = prompt(simple_setup_questions)
@@ -311,7 +311,7 @@ def configure():
                         'type': 'input',
                         'name': 'statsSendPeriodInSeconds',
                         'message': 'Period of time sending statistics (sec.):',
-                        'default': str(default_config['thingsboard']['statistics']['statsSendPeriodInSeconds']),
+                        'default': str(default_config['iotplatform']['statistics']['statsSendPeriodInSeconds']),
                         'validate': NumberValidator,
                         'filter': lambda val: int(val)
                     },
@@ -389,7 +389,7 @@ def configure():
                     'name': 'qos',
                     'message': 'QoS:',
                     'validate': NumberValidator,
-                    'default': str(default_config['thingsboard']['qos']),
+                    'default': str(default_config['iotplatform']['qos']),
                     'filter': lambda val: int(val)
                 },
                 {
@@ -413,7 +413,7 @@ def configure():
                     {
                         'type': 'input',
                         'name': 'read_records_count',
-                        'message': 'Count of messages to get from storage and send to ThingsBoard:',
+                        'message': 'Count of messages to get from storage and send to IOTPlatform:',
                         'default': str(default_config['storage'].get('read_records_count', '')),
                         'validate': NumberValidator,
                         'filter': lambda val: int(val)
@@ -421,7 +421,7 @@ def configure():
                     {
                         'type': 'input',
                         'name': 'max_records_count',
-                        'message': 'Maximum count of data in storage before send to ThingsBoard:',
+                        'message': 'Maximum count of data in storage before send to IOTPlatform:',
                         'default': str(default_config['storage'].get('max_records_count', '')),
                         'validate': NumberValidator,
                         'filter': lambda val: int(val)
@@ -447,7 +447,7 @@ def configure():
                     {
                         'type': 'input',
                         'name': 'max_read_records_count',
-                        'message': 'Count of messages to get from storage and send to ThingsBoard:',
+                        'message': 'Count of messages to get from storage and send to IOTPlatform:',
                         'default': str(default_config['storage'].get('max_read_records_count', '')),
                         'validate': NumberValidator,
                         'filter': lambda val: int(val)
@@ -570,7 +570,7 @@ def configure():
 
         generate_config_file(
             {
-                'thingsboard': {**base_answers, **simple_setup_answers, 'security': security_answers,
+                'iotplatform': {**base_answers, **simple_setup_answers, 'security': security_answers,
                                 'qos': qos_and_storage_type_answers['qos'], 'statistics': statistics_answers},
                 'storage': {'type': qos_and_storage_type_answers['storage'], **storage_answers},
                 'grpc': {'enabled': grpc_enabled, **grpc_api_answers},

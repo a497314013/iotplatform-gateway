@@ -3,7 +3,7 @@ set -e
 
 echo "Preinst: Ensuring required directories exist..."
 
-for dir in /etc/thingsboard-gateway /var/lib/iotplatform_gateway /var/log/thingsboard-gateway /var/lib/iotplatform_gateway/extensions; do
+for dir in /etc/iotplatform-gateway /var/lib/iotplatform_gateway /var/log/iotplatform-gateway /var/lib/iotplatform_gateway/extensions; do
     if [ ! -d "$dir" ]; then
         echo "Preinst: Creating directory $dir..."
         mkdir -p "$dir"
@@ -12,12 +12,12 @@ for dir in /etc/thingsboard-gateway /var/lib/iotplatform_gateway /var/log/things
     fi
 done
 
-echo "Preinst: Checking for system user 'thingsboard_gateway'..."
-if id "thingsboard_gateway" >/dev/null 2>&1; then
-    echo "Preinst: User 'thingsboard_gateway' already exists. Skipping creation."
+echo "Preinst: Checking for system user 'iotplatform_gateway'..."
+if id "iotplatform_gateway" >/dev/null 2>&1; then
+    echo "Preinst: User 'iotplatform_gateway' already exists. Skipping creation."
 else
-    adduser --system --gecos "ThingsBoard-Gateway Service" --disabled-password --group --home /var/lib/iotplatform_gateway iotplatform_gateway
-    echo "Preinst: Created user 'thingsboard_gateway'."
+    adduser --system --gecos "IOTPlatform-Gateway Service" --disabled-password --group --home /var/lib/iotplatform_gateway iotplatform_gateway
+    echo "Preinst: Created user 'iotplatform_gateway'."
 fi
 
 exit 0

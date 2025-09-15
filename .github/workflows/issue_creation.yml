@@ -50,7 +50,7 @@ jobs:
           NUMBER: ${{ github.event.issue.number }}
           BODY: |
             Hi @${{ github.event.issue.user.login }}.  
-            Thank you for your interest in ThingsBoard IoT Gateway.  
+            Thank you for your interest in IOTPlatform Gateway.  
             Your issue was registered, please wait for response from engineer.  
             
             ${{ steps.create.outputs.issue }} 

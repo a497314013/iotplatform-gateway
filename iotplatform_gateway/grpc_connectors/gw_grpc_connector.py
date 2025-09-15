@@ -1,16 +1,4 @@
-#     Copyright 2025. ThingsBoard
-#
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+
 
 from logging import getLogger
 from logging.config import fileConfig
@@ -133,7 +121,7 @@ class GwGrpcConnector(Thread):
             self.__received_configuration = data.connectorConfigurationMsg.configuration
             self.__connector_id = data.connectorConfigurationMsg.connectorId
             self.__connector_name = data.connectorConfigurationMsg.connectorName
-            log.info("[%r] Connector %s connected to ThingsBoard IoT gateway", self.__connector_id, self.__connector_name)
+            log.info("[%r] Connector %s connected to IOTPlatform IoT gateway", self.__connector_id, self.__connector_name)
             log.debug("Configuration - received.")
             log.debug(self.__received_configuration)
             if data.HasField('connectorGetConnectedDevicesResponseMsg'):

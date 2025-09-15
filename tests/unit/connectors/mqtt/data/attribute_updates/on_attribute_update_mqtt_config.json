@@ -3,7 +3,7 @@
     "host": "127.0.0.1",
     "port": 1885,
     "version": 5,
-    "clientId": "ThingsBoard_gateway",
+    "clientId": "IOTPlatform_gateway",
     "security": {
       "type": "basic",
       "username": "user1",

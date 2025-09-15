@@ -30,5 +30,5 @@ KeyError: 'deviceName'
 
 **Versions (please complete the following information):**
  - OS: [e.g. Ubuntu 20.04]
- - Thingsboard IoT Gateway version [e.g. 3.0.1]
+ - IOTPlatform IoT Gateway version [e.g. 3.0.1]
  - Python version[e.g. 3.9]

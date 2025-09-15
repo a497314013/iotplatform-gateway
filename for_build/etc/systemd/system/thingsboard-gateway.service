@@ -1,15 +1,15 @@
 [Unit]
-Description=ThingsBoard Gateway
+Description=IOTPlatform Gateway
 After=multi-user.target
-ConditionPathExists=/etc/thingsboard-gateway/config/tb_gateway.json
+ConditionPathExists=/etc/iotplatform-gateway/config/tb_gateway.json
 
 [Service]
 Type=simple
-User=thingsboard_gateway
-Group=thingsboard_gateway
+User=iotplatform_gateway
+Group=iotplatform_gateway
 
-WorkingDirectory=/var/lib/thingsboard_gateway
-ExecStart=/var/lib/thingsboard_gateway/venv/bin/python3 -c "from thingsboard_gateway.tb_gateway import daemon; daemon()"
+WorkingDirectory=/var/lib/iotplatform_gateway
+ExecStart=/var/lib/iotplatform_gateway/venv/bin/python3 -c "from iotplatform_gateway.tb_gateway import daemon; daemon()"
 ExecStop=/bin/kill -INT $MAINPID
 ExecReload=/bin/kill -TERM $MAINPID
 

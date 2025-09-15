@@ -12,7 +12,7 @@ LOG.trace = LOG.debug
 class GatewayDeviceUtil:
     DEFAULT_URL = environ.get('TB_BASE_URL', "http://127.0.0.1:9090")
 
-    DEFAULT_USERNAME = "tenant@thingsboard.org"
+    DEFAULT_USERNAME = "tenant@iotplatform.org"
     DEFAULT_PASSWORD = "tenant"
 
     GATEWAY_DEVICE_NAME = "Test Gateway device"

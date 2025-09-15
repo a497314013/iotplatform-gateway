@@ -2,12 +2,12 @@ version: '3.5'
 services:
   tb:
     container_name: tests_tb_1
-    image: "thingsboard/tb-postgres"
+    image: "iotplatform/tb-postgres"
     environment:
       TB_QUEUE_TYPE: in-memory
     volumes:
       - tb-data:/data
-      - tb-logs:/var/log/thingsboard
+      - tb-logs:/var/log/iotplatform
     network_mode: host
   gw:
     container_name: tests_gw_1
@@ -24,15 +24,15 @@ services:
     network_mode: host
   mqtt-broker:
     container_name: tests_mqtt_broker_1
-    image: "thingsboard/tb-gw-mqtt-broker:latest"
+    image: "iotplatform/tb-gw-mqtt-broker:latest"
     network_mode: host
   modbus-server:
     container_name: tests_modbus_server_1
-    image: "thingsboard/tb-gw-modbus-server:latest"
+    image: "iotplatform/tb-gw-modbus-server:latest"
     network_mode: host
   opcua-server:
     container_name: tests_opcua_server_1
-    image: "thingsboard/tb-gw-opcua-server:latest"
+    image: "iotplatform/tb-gw-opcua-server:latest"
     network_mode: host
 volumes:
   tb-data:
