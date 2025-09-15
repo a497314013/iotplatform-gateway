@@ -1,7 +1,0 @@
-{
-  "topicFilter": "sensor/+/disconnect",
-  "deviceInfo": {
-    "deviceNameExpressionSource": "topic",
-    "deviceNameExpression": "(?<=sensor/)(.*?)(?=/disconnect)"
-  }
-}

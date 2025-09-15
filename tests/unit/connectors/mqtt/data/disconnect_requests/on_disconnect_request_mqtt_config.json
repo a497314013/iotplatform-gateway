@@ -1,7 +1,0 @@
-{
-  "topicFilter": "sensor/disconnect",
-  "deviceInfo": {
-    "deviceNameExpressionSource": "message",
-    "deviceNameExpression": "${serialNumber}"
-  }
-  }

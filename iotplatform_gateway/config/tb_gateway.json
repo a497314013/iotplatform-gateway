@@ -2,12 +2,12 @@
   "iotplatform": {
     "host": "192.168.137.1",
     "port": 1883,
-    "remoteShell": false,
+    "remoteShell": true,
     "remoteConfiguration": true,
     "latencyDebugMode": false,
     "statistics": {
       "enable": true,
-      "statsSendPeriodInSeconds": 60,
+      "statsSendPeriodInSeconds": 3600,
       "customStatsSendPeriodInSeconds": 3600
     },
     "deviceFiltering": {
@@ -25,7 +25,9 @@
     },
     "qos": 1,
     "reportStrategy": {
-      "type": "ON_RECEIVED"
+      "type": "ON_RECEIVED",
+      "reportPeriod": 10000,
+      "ttl": 86400
     },
     "checkingDeviceActivity": {
       "checkDeviceInactivity": false,
@@ -37,7 +39,8 @@
     "messagesRateLimits": "DEFAULT_MESSAGES_RATE_LIMIT",
     "deviceMessagesRateLimits": "DEFAULT_MESSAGES_RATE_LIMIT",
     "deviceRateLimits": "DEFAULT_TELEMETRY_RATE_LIMIT",
-    "deviceDpRateLimits": "DEFAULT_TELEMETRY_DP_RATE_LIMIT"
+    "deviceDpRateLimits": "DEFAULT_TELEMETRY_DP_RATE_LIMIT",
+    "ts": 1757488625247
   },
   "storage": {
     "type": "memory",
@@ -47,9 +50,10 @@
     "max_file_count": 10,
     "max_read_records_count": 10,
     "max_records_per_file": 10000,
-    "data_file_path": "./data/",
+    "data_file_path": "./data/data.db",
     "messages_ttl_check_in_hours": 1,
-    "messages_ttl_in_days": 7
+    "messages_ttl_in_days": 7,
+    "ts": 1757488625247
   },
   "grpc": {
     "enabled": false,
@@ -61,5 +65,11 @@
     "minTimeBetweenPingsMs": 10000,
     "minPingIntervalWithoutDataMs": 5000
   },
-  "connectors": []
+  "connectors": [
+    {
+      "type": "modbus",
+      "name": "\u7269\u7406\u53c2\u6570\u6d4b\u8bd5\u7ad9\u4f4d",
+      "configuration": "\u7269\u7406\u53c2\u6570\u6d4b\u8bd5\u7ad9\u4f4d.json"
+    }
+  ]
 }
