@@ -14,7 +14,7 @@
 
 from asyncio import Future
 from unittest.mock import patch, call
-from thingsboard_gateway.gateway.constants import ON_ATTRIBUTE_UPDATE_DEFAULT_TIMEOUT
+from iotplatform_gateway.gateway.constants import ON_ATTRIBUTE_UPDATE_DEFAULT_TIMEOUT
 from asyncua.ua import NodeId
 
 from tests.unit.connectors.opcua.opcua_base_test import OpcUABaseTest

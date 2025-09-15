@@ -1,10 +1,10 @@
 core:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/gateway/**
-          - thingsboard_gateway/storage/**
-          - thingsboard_gateway/tb_utility/**
-          - thingsboard_gateway/*.py
+          - iotplatform_gateway/gateway/**
+          - iotplatform_gateway/storage/**
+          - iotplatform_gateway/tb_utility/**
+          - iotplatform_gateway/*.py
 
 bug:
   - head-branch:
@@ -17,89 +17,89 @@ bug:
 Connector:BACnet:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/bacnet/**
-          - thingsboard_gateway/extensions/bacnet/**
+          - iotplatform_gateway/connectors/bacnet/**
+          - iotplatform_gateway/extensions/bacnet/**
 
 Connector:BLE:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/ble/**
-          - thingsboard_gateway/extensions/ble/**
+          - iotplatform_gateway/connectors/ble/**
+          - iotplatform_gateway/extensions/ble/**
 
 Connector:CAN:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/can/**
-          - thingsboard_gateway/extensions/can/**
+          - iotplatform_gateway/connectors/can/**
+          - iotplatform_gateway/extensions/can/**
 
 Connector:FTP:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/ftp/**
-          - thingsboard_gateway/extensions/ftp/**
+          - iotplatform_gateway/connectors/ftp/**
+          - iotplatform_gateway/extensions/ftp/**
 
 Connector:KNX:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/knx/**
-          - thingsboard_gateway/extensions/knx/**
+          - iotplatform_gateway/connectors/knx/**
+          - iotplatform_gateway/extensions/knx/**
 
 Connector:Modbus:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/modbus/**
-          - thingsboard_gateway/extensions/modbus/**
+          - iotplatform_gateway/connectors/modbus/**
+          - iotplatform_gateway/extensions/modbus/**
 
 Connector:MQTT:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/mqtt/**
-          - thingsboard_gateway/extensions/mqtt/**
+          - iotplatform_gateway/connectors/mqtt/**
+          - iotplatform_gateway/extensions/mqtt/**
 
 Connector:OCPP:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/ocpp/**
-          - thingsboard_gateway/extensions/ocpp/**
+          - iotplatform_gateway/connectors/ocpp/**
+          - iotplatform_gateway/extensions/ocpp/**
 
 Connector:ODBC:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/odbc/**
-          - thingsboard_gateway/extensions/odbc/**
+          - iotplatform_gateway/connectors/odbc/**
+          - iotplatform_gateway/extensions/odbc/**
 
 Connector:OPC-UA:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/opcua/**
-          - thingsboard_gateway/extensions/opcua/**
+          - iotplatform_gateway/connectors/opcua/**
+          - iotplatform_gateway/extensions/opcua/**
 
 Connector:Request:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/request/**
-          - thingsboard_gateway/extensions/request/**
+          - iotplatform_gateway/connectors/request/**
+          - iotplatform_gateway/extensions/request/**
 
 Connector:REST:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/rest/**
-          - thingsboard_gateway/extensions/rest/**
+          - iotplatform_gateway/connectors/rest/**
+          - iotplatform_gateway/extensions/rest/**
 
 Connector:SNMP:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/snmp/**
-          - thingsboard_gateway/extensions/snmp/**
+          - iotplatform_gateway/connectors/snmp/**
+          - iotplatform_gateway/extensions/snmp/**
 
 Connector:Socket:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/socket/**
-          - thingsboard_gateway/extensions/socket/**
+          - iotplatform_gateway/connectors/socket/**
+          - iotplatform_gateway/extensions/socket/**
 
 Connector:XMPP:
   - changed-files:
       - any-glob-to-any-file:
-          - thingsboard_gateway/connectors/xmpp/**
-          - thingsboard_gateway/extensions/xmpp/**
+          - iotplatform_gateway/connectors/xmpp/**
+          - iotplatform_gateway/extensions/xmpp/**

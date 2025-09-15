@@ -19,8 +19,8 @@ from random import randint, uniform, choice
 from string import ascii_lowercase
 
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.connectors.can.bytes_can_uplink_converter import BytesCanUplinkConverter
-from thingsboard_gateway.gateway.entities.converted_data import ConvertedData
+from iotplatform_gateway.connectors.can.bytes_can_uplink_converter import BytesCanUplinkConverter
+from iotplatform_gateway.gateway.entities.converted_data import ConvertedData
 
 
 class BytesCanUplinkConverterTests(BaseUnitTest):

@@ -2,7 +2,7 @@
 *
 
 # except the following
-!/thingsboard_gateway/
+!/iotplatform_gateway/
 !LICENSE
 !README.md
 !setup.py

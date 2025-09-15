@@ -4,7 +4,7 @@ from unittest import TestCase, main
 import time
 from dateutil import parser
 
-from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+from iotplatform_gateway.tb_utility.tb_utility import TBUtility
 
 
 class TestTSFormatResolver(TestCase):

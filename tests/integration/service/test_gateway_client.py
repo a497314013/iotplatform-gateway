@@ -6,7 +6,7 @@ from simplejson import dumps
 from os import path
 
 from tests.integration.integration_base_test import IntegrationBaseTest
-from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
+from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
 
 
 def assert_not_called_with(self, *args, **kwargs):

@@ -20,8 +20,8 @@ from unittest.mock import MagicMock
 from bacpypes3.apdu import IAmRequest
 from bacpypes3.pdu import Address
 from simplejson import load
-from thingsboard_gateway.connectors.bacnet.device import Device, Devices
-from thingsboard_gateway.connectors.bacnet.bacnet_connector import AsyncBACnetConnector
+from iotplatform_gateway.connectors.bacnet.device import Device, Devices
+from iotplatform_gateway.connectors.bacnet.bacnet_connector import AsyncBACnetConnector
 
 
 class BacnetBaseTestCase(IsolatedAsyncioTestCase):

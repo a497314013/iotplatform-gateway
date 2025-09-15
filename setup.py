@@ -17,7 +17,7 @@
 from setuptools import setup
 from os import path
 
-from thingsboard_gateway import version
+from iotplatform_gateway import version
 
 current_directory = path.abspath(path.dirname(__file__))
 with open(path.join(current_directory, 'README.md'), encoding='utf-8') as f:
@@ -35,35 +35,35 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     python_requires=">=3.10",
-    packages=['thingsboard_gateway', 'thingsboard_gateway.gateway',
-              'thingsboard_gateway.gateway.entities',
-              'thingsboard_gateway.gateway.proto', 'thingsboard_gateway.gateway.grpc_service',
-              'thingsboard_gateway.gateway.shell', 'thingsboard_gateway.gateway.statistics',
-              'thingsboard_gateway.storage', 'thingsboard_gateway.storage.memory',
-              'thingsboard_gateway.gateway.report_strategy', 'thingsboard_gateway.storage.file',
-              'thingsboard_gateway.storage.sqlite',
-              'thingsboard_gateway.connectors',
-              'thingsboard_gateway.connectors.ble', 'thingsboard_gateway.extensions.ble',
-              'thingsboard_gateway.connectors.socket', 'thingsboard_gateway.extensions.socket',
-              'thingsboard_gateway.connectors.mqtt', 'thingsboard_gateway.extensions.mqtt',
-              'thingsboard_gateway.connectors.xmpp', 'thingsboard_gateway.extensions.xmpp',
-              'thingsboard_gateway.connectors.modbus', 'thingsboard_gateway.connectors.modbus.entities',
-              'thingsboard_gateway.extensions.modbus',
-              'thingsboard_gateway.connectors.opcua', 'thingsboard_gateway.extensions.opcua',
-              'thingsboard_gateway.connectors.opcua.entities',
-              'thingsboard_gateway.connectors.request', 'thingsboard_gateway.extensions.request',
-              'thingsboard_gateway.connectors.ocpp', 'thingsboard_gateway.extensions.ocpp',
-              'thingsboard_gateway.connectors.can', 'thingsboard_gateway.extensions.can',
-              'thingsboard_gateway.connectors.odbc', 'thingsboard_gateway.extensions.odbc',
-              'thingsboard_gateway.connectors.bacnet', 'thingsboard_gateway.connectors.bacnet.entities',
-              'thingsboard_gateway.extensions.bacnet',
-              'thingsboard_gateway.connectors.rest', 'thingsboard_gateway.extensions.rest',
-              'thingsboard_gateway.connectors.snmp', 'thingsboard_gateway.extensions.snmp',
-              'thingsboard_gateway.connectors.ftp', 'thingsboard_gateway.extensions.ftp',
-              'thingsboard_gateway.connectors.knx', 'thingsboard_gateway.extensions.knx',
-              'thingsboard_gateway.connectors.knx.entities',
-              'thingsboard_gateway.tb_utility', 'thingsboard_gateway.extensions',
-              'thingsboard_gateway.extensions.serial'
+    packages=['iotplatform_gateway', 'iotplatform_gateway.gateway',
+              'iotplatform_gateway.gateway.entities',
+              'iotplatform_gateway.gateway.proto', 'iotplatform_gateway.gateway.grpc_service',
+              'iotplatform_gateway.gateway.shell', 'iotplatform_gateway.gateway.statistics',
+              'iotplatform_gateway.storage', 'iotplatform_gateway.storage.memory',
+              'iotplatform_gateway.gateway.report_strategy', 'iotplatform_gateway.storage.file',
+              'iotplatform_gateway.storage.sqlite',
+              'iotplatform_gateway.connectors',
+              'iotplatform_gateway.connectors.ble', 'iotplatform_gateway.extensions.ble',
+              'iotplatform_gateway.connectors.socket', 'iotplatform_gateway.extensions.socket',
+              'iotplatform_gateway.connectors.mqtt', 'iotplatform_gateway.extensions.mqtt',
+              'iotplatform_gateway.connectors.xmpp', 'iotplatform_gateway.extensions.xmpp',
+              'iotplatform_gateway.connectors.modbus', 'iotplatform_gateway.connectors.modbus.entities',
+              'iotplatform_gateway.extensions.modbus',
+              'iotplatform_gateway.connectors.opcua', 'iotplatform_gateway.extensions.opcua',
+              'iotplatform_gateway.connectors.opcua.entities',
+              'iotplatform_gateway.connectors.request', 'iotplatform_gateway.extensions.request',
+              'iotplatform_gateway.connectors.ocpp', 'iotplatform_gateway.extensions.ocpp',
+              'iotplatform_gateway.connectors.can', 'iotplatform_gateway.extensions.can',
+              'iotplatform_gateway.connectors.odbc', 'iotplatform_gateway.extensions.odbc',
+              'iotplatform_gateway.connectors.bacnet', 'iotplatform_gateway.connectors.bacnet.entities',
+              'iotplatform_gateway.extensions.bacnet',
+              'iotplatform_gateway.connectors.rest', 'iotplatform_gateway.extensions.rest',
+              'iotplatform_gateway.connectors.snmp', 'iotplatform_gateway.extensions.snmp',
+              'iotplatform_gateway.connectors.ftp', 'iotplatform_gateway.extensions.ftp',
+              'iotplatform_gateway.connectors.knx', 'iotplatform_gateway.extensions.knx',
+              'iotplatform_gateway.connectors.knx.entities',
+              'iotplatform_gateway.tb_utility', 'iotplatform_gateway.extensions',
+              'iotplatform_gateway.extensions.serial'
               ],
     install_requires=[
         'setuptools',
@@ -94,8 +94,8 @@ setup(
     download_url='https://github.com/thingsboard/thingsboard-gateway/archive/%s.tar.gz' % version.VERSION,
     entry_points={
         'console_scripts': [
-            'thingsboard-gateway = thingsboard_gateway.tb_gateway:daemon',
-            'tb-gateway-configurator = thingsboard_gateway.gateway.configuration_wizard:configure',
-            'tb-gateway-shell = thingsboard_gateway.gateway.shell:main'
+            'thingsboard-gateway = iotplatform_gateway.tb_gateway:daemon',
+            'tb-gateway-configurator = iotplatform_gateway.gateway.configuration_wizard:configure',
+            'tb-gateway-shell = iotplatform_gateway.gateway.shell:main'
         ]
     })

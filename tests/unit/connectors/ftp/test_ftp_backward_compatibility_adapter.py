@@ -16,7 +16,7 @@ import unittest
 from os import path
 from tests.unit.BaseUnitTest import BaseUnitTest
 from simplejson import load
-from thingsboard_gateway.connectors.ftp.backward_compatibility_adapter import FTPBackwardCompatibilityAdapter
+from iotplatform_gateway.connectors.ftp.backward_compatibility_adapter import FTPBackwardCompatibilityAdapter
 
 
 class FtpBackwardCompatibilityAdapterTests(BaseUnitTest):

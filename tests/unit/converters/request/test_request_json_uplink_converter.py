@@ -1,8 +1,8 @@
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.connectors.request.json_request_uplink_converter import JsonRequestUplinkConverter
-from thingsboard_gateway.gateway.entities.converted_data import ConvertedData
-from thingsboard_gateway.gateway.entities.datapoint_key import DatapointKey
-from thingsboard_gateway.gateway.entities.telemetry_entry import TelemetryEntry
+from iotplatform_gateway.connectors.request.json_request_uplink_converter import JsonRequestUplinkConverter
+from iotplatform_gateway.gateway.entities.converted_data import ConvertedData
+from iotplatform_gateway.gateway.entities.datapoint_key import DatapointKey
+from iotplatform_gateway.gateway.entities.telemetry_entry import TelemetryEntry
 
 
 class RequestJsonUplinkConverterTest(BaseUnitTest):

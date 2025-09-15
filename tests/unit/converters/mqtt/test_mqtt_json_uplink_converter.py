@@ -16,8 +16,8 @@ import unittest
 from random import randint
 
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.gateway.constants import *
-from thingsboard_gateway.connectors.mqtt.json_mqtt_uplink_converter import JsonMqttUplinkConverter
+from iotplatform_gateway.gateway.constants import *
+from iotplatform_gateway.connectors.mqtt.json_mqtt_uplink_converter import JsonMqttUplinkConverter
 
 
 class JsonMqttUplinkConverterTests(BaseUnitTest):

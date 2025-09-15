@@ -3,14 +3,14 @@ import unittest
 try:
     from pymodbus.constants import Endian
 except (ImportError, ModuleNotFoundError):
-    from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+    from iotplatform_gateway.tb_utility.tb_utility import TBUtility
     TBUtility.install_package("pymodbus", version="3.0.0", force_install=True)
     from pymodbus.constants import Endian
 
 from pymodbus.payload import BinaryPayloadBuilder
 
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.connectors.modbus.bytes_modbus_uplink_converter import BytesModbusUplinkConverter
+from iotplatform_gateway.connectors.modbus.bytes_modbus_uplink_converter import BytesModbusUplinkConverter
 
 
 class ModbusConverterTests(BaseUnitTest):

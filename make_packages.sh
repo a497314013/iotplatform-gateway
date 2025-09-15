@@ -38,8 +38,8 @@ for pkg in "${REQUIRED_PKGS[@]}"; do
     fi
 done
 
-# Extract the current version from thingsboard_gateway/version.py
-CURRENT_VERSION=$(grep -Po 'VERSION[ ,]=[ ,]"\K(([0-9])+(\.){0,1})+' thingsboard_gateway/version.py)
+# Extract the current version from iotplatform_gateway/version.py
+CURRENT_VERSION=$(grep -Po 'VERSION[ ,]=[ ,]"\K(([0-9])+(\.){0,1})+' iotplatform_gateway/version.py)
 
 # --- Clean Block ---
 if [ "${1:-}" = "clean" ] || [ "${1:-}" = "only_clean" ]; then
@@ -80,36 +80,36 @@ if [ "${1:-}" = "clean" ] || [ "${1:-}" = "only_clean" ]; then
     done
 
     if compgen -G "thingsboard_gateway-*.whl" > /dev/null; then
-        sudo rm -f thingsboard_gateway-*.whl
+        sudo rm -f iotplatform_gateway-*.whl
         echo "File $f - removed."
     else
         echo "No thingsboard_gateway-*.whl files found, skipping..."
     fi
 
-    sudo rm -rf thingsboard_gateway/config/backup || echo "Backup folder not found, skipping..."
+    sudo rm -rf iotplatform_gateway/config/backup || echo "Backup folder not found, skipping..."
     sudo rm -rf docker/config docker/extensions || echo "Docker directories not found, skipping..."
     sudo rm -rf for_build/etc/thingsboard-gateway/*
-    sudo rm -rf for_build/var/lib/thingsboard_gateway/*
-    sudo find thingsboard_gateway/ -name "*.pyc" -exec rm -f {} \;
+    sudo rm -rf for_build/var/lib/iotplatform_gateway/*
+    sudo find iotplatform_gateway/ -name "*.pyc" -exec rm -f {} \;
     sudo apt remove python3-thingsboard-gateway -y || echo "Package not installed, skipping..."
 
     echo "All generated files removed."
 fi
 
-sudo rm -rf thingsboard_gateway/logs/*
+sudo rm -rf iotplatform_gateway/logs/*
 
 if [[ "${2:-}" == "offline-build" ]]; then
-  sudo mkdir -p /var/lib/thingsboard_gateway
-  sudo cp -r requirements-full.txt /var/lib/thingsboard_gateway/
-  sudo chown -R "$USER":"$USER" /var/lib/thingsboard_gateway
+  sudo mkdir -p /var/lib/iotplatform_gateway
+  sudo cp -r requirements-full.txt /var/lib/iotplatform_gateway/
+  sudo chown -R "$USER":"$USER" /var/lib/iotplatform_gateway
 
-  python3.11 -m venv /var/lib/thingsboard_gateway/venv
-  source /var/lib/thingsboard_gateway/venv/bin/activate
+  python3.11 -m venv /var/lib/iotplatform_gateway/venv
+  source /var/lib/iotplatform_gateway/venv/bin/activate
   pip install -r requirements-full.txt
-  sudo cp /var/lib/thingsboard_gateway/venv thingsboard_gateway -r
+  sudo cp /var/lib/iotplatform_gateway/venv iotplatform_gateway -r
 
   echo "Building offline package with full requirements..."
-  tar -czf venv.tar.gz -C thingsboard_gateway venv
+  tar -czf venv.tar.gz -C iotplatform_gateway venv
   ls
   pwd
 fi
@@ -130,28 +130,28 @@ if [ "${1:-}" != "only_clean" ]; then
   python3 -m pip install --upgrade --break-system-packages build
 
   python3 -m build --no-isolation --wheel --outdir .
-  WHEEL_FILE=$(ls | grep -E 'thingsboard_gateway-.*\.whl' | head -n 1)
+  WHEEL_FILE=$(ls | grep -E 'iotplatform_gateway-.*\.whl' | head -n 1)
   echo "Found wheel: $WHEEL_FILE"
   if [ ! -f "$WHEEL_FILE" ]; then
     echo "Error: Wheel file $WHEEL_FILE not found."
     exit 1
   fi
 
-  # Create configs.tar.gz from the thingsboard_gateway/config folder if not present.
+  # Create configs.tar.gz from the iotplatform_gateway/config folder if not present.
 if [ ! -f configs.tar.gz ]; then
     echo "Creating configs.tar.gz from the thingsboard_gateway/config folder..."
     TEMP_CONFIG_DIR=$(mktemp -d)
-    cp -r thingsboard_gateway/config "$TEMP_CONFIG_DIR/"
+    cp -r iotplatform_gateway/config "$TEMP_CONFIG_DIR/"
     sed -i 's#\./logs/#/var/log/thingsboard-gateway/#g' "$TEMP_CONFIG_DIR/config/logs.json"
     tar -czf configs.tar.gz -C "$TEMP_CONFIG_DIR" config
     rm -rf "$TEMP_CONFIG_DIR"
 fi
 
 
-  # Create extensions.tar.gz from the thingsboard_gateway/extensions folder if not present.
+  # Create extensions.tar.gz from the iotplatform_gateway/extensions folder if not present.
   if [ ! -f extensions.tar.gz ]; then
       echo "Creating extensions.tar.gz from the thingsboard_gateway/extensions folder..."
-      tar -czf extensions.tar.gz -C thingsboard_gateway extensions
+      tar -czf extensions.tar.gz -C iotplatform_gateway extensions
       ls
       pwd
   fi
@@ -178,17 +178,17 @@ Description: ThingsBoard IoT Gateway
 Depends: python3, python3-venv
 EOT
 
-  mkdir -p for_build/var/lib/thingsboard_gateway
-  cp extensions.tar.gz for_build/var/lib/thingsboard_gateway
+  mkdir -p for_build/var/lib/iotplatform_gateway
+  cp extensions.tar.gz for_build/var/lib/iotplatform_gateway
   mkdir -p for_build/etc/thingsboard-gateway
   cp configs.tar.gz for_build/etc/thingsboard-gateway
 
   if [[ "${2:-}" == "offline-build" ]]; then
-    cp venv.tar.gz for_build/var/lib/thingsboard_gateway
+    cp venv.tar.gz for_build/var/lib/iotplatform_gateway
   fi
 
-  rm -f for_build/var/lib/thingsboard_gateway/thingsboard_gateway-*.whl
-  cp -r "$WHEEL_FILE" for_build/var/lib/thingsboard_gateway/"$WHEEL_FILE"
+  rm -f for_build/var/lib/iotplatform_gateway/iotplatform_gateway-*.whl
+  cp -r "$WHEEL_FILE" for_build/var/lib/iotplatform_gateway/"$WHEEL_FILE"
   cp -r for_build/etc deb_dist/thingsboard-gateway-"$CURRENT_VERSION"/debian/python3-thingsboard-gateway
   cp -r for_build/var deb_dist/thingsboard-gateway-"$CURRENT_VERSION"/debian/python3-thingsboard-gateway
   cp -r -a for_build/DEBIAN deb_dist/thingsboard-gateway-"$CURRENT_VERSION"/debian/python3-thingsboard-gateway

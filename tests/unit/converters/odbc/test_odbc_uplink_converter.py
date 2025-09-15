@@ -20,7 +20,7 @@ from random import randint, uniform, choice
 from string import ascii_lowercase
 
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.connectors.odbc.odbc_uplink_converter import OdbcUplinkConverter
+from iotplatform_gateway.connectors.odbc.odbc_uplink_converter import OdbcUplinkConverter
 
 
 class OdbcUplinkConverterTests(BaseUnitTest):

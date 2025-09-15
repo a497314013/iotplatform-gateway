@@ -20,10 +20,10 @@ from threading import Event
 from time import sleep
 from unittest import TestCase
 
-from thingsboard_gateway.storage.file.file_event_storage import FileEventStorage
-from thingsboard_gateway.storage.memory.memory_event_storage import MemoryEventStorage
-from thingsboard_gateway.storage.sqlite.sqlite_event_storage import SQLiteEventStorage
-from thingsboard_gateway.storage.sqlite.storage_settings import StorageSettings
+from iotplatform_gateway.storage.file.file_event_storage import FileEventStorage
+from iotplatform_gateway.storage.memory.memory_event_storage import MemoryEventStorage
+from iotplatform_gateway.storage.sqlite.sqlite_event_storage import SQLiteEventStorage
+from iotplatform_gateway.storage.sqlite.storage_settings import StorageSettings
 
 LOG = getLogger("TEST")
 LOG.trace = LOG.debug

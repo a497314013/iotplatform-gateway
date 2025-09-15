@@ -13,8 +13,8 @@ ENV PATH="/root/.cargo/bin:/root/.local/bin:$PATH" \
     logs="/thingsboard_gateway/logs"
 
 RUN mkdir -p /default-config/config /default-config/extensions/ &&  \
-    cp -r /thingsboard_gateway/config/* /default-config/config/ &&  \
-    cp -r /thingsboard_gateway/extensions/* /default-config/extensions &&  \
+    cp -r /iotplatform_gateway/config/* /default-config/config/ &&  \
+    cp -r /iotplatform_gateway/extensions/* /default-config/extensions &&  \
     echo "Running on $BUILDPLATFORM, building for $TARGETPLATFORM" > /log && \
     apt-get update &&  \
     apt-get install -y --no-install-recommends \
@@ -33,16 +33,16 @@ RUN mkdir -p /default-config/config /default-config/extensions/ &&  \
     rm -rf /var/lib/apt/lists/* /tmp/* && \
     echo '#!/bin/sh\n\
 # Main start script\n\
-CONF_FOLDER="/thingsboard_gateway/config"\n\
+CONF_FOLDER="/iotplatform_gateway/config"\n\
 FIRSTLAUNCH="${CONF_FOLDER}/.firstlaunch"\n\
 if [ ! -f "$FIRSTLAUNCH" ]; then\n\
-    cp -r /default-config/config/* /thingsboard_gateway/config/\n\
-    cp -r /default-config/extensions/* /thingsboard_gateway/extensions/\n\
+    cp -r /default-config/config/* /iotplatform_gateway/config/\n\
+    cp -r /default-config/extensions/* /iotplatform_gateway/extensions/\n\
     touch $FIRSTLAUNCH\n\
     echo "#Remove this file only if you want to recreate default config files! This will overwrite existing files" > $FIRSTLAUNCH\n\
 fi\n\
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf\n\
-python /thingsboard_gateway/tb_gateway.py' > /start-gateway.sh && chmod +x /start-gateway.sh && \
+python /iotplatform_gateway/tb_gateway.py' > /start-gateway.sh && chmod +x /start-gateway.sh && \
     python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
     python3 -m pip install --no-cache-dir cryptography && \
     python3 -m pip install --no-cache-dir -r requirements.txt && \

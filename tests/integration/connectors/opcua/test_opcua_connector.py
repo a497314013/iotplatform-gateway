@@ -16,7 +16,7 @@
 # from time import sleep
 #
 # from tests.integration.connectors.connector_integration_base_test import ConnectorTestBase
-# from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+# from iotplatform_gateway.tb_utility.tb_utility import TBUtility
 #
 # try:
 #     from opcua.ua import NodeId, NodeIdType

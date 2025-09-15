@@ -23,22 +23,22 @@ from time import sleep, time
 from unittest.mock import Mock, patch
 
 from tests.base_test import BaseTest
-from thingsboard_gateway.gateway.entities.converted_data import ConvertedData
-from thingsboard_gateway.gateway.entities.datapoint_key import DatapointKey
-from thingsboard_gateway.gateway.entities.telemetry_entry import TelemetryEntry
-from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
-from thingsboard_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
-from thingsboard_gateway.tb_utility.tb_logger import TbLogger
+from iotplatform_gateway.gateway.entities.converted_data import ConvertedData
+from iotplatform_gateway.gateway.entities.datapoint_key import DatapointKey
+from iotplatform_gateway.gateway.entities.telemetry_entry import TelemetryEntry
+from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
+from iotplatform_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
+from iotplatform_gateway.tb_utility.tb_logger import TbLogger
 
 try:
     from can import Notifier, BufferedReader, Bus, Message
 except (ImportError, ModuleNotFoundError):
-    from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+    from iotplatform_gateway.tb_utility.tb_utility import TBUtility
     TBUtility.install_package("python-can")
     from can import Notifier, BufferedReader, Bus, Message
 from simplejson import load
 
-from thingsboard_gateway.connectors.can.can_connector import CanConnector
+from iotplatform_gateway.connectors.can.can_connector import CanConnector
 
 
 def assert_not_called_with(self, *args, **kwargs):

@@ -15,7 +15,7 @@
 import re
 
 from tests.unit.BaseUnitTest import BaseUnitTest
-from thingsboard_gateway.connectors.bacnet.device import Device
+from iotplatform_gateway.connectors.bacnet.device import Device
 
 
 class BACnetDeviceTests(BaseUnitTest):

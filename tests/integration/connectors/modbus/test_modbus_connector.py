@@ -7,15 +7,15 @@ from unittest.mock import Mock, patch
 
 from simplejson import load
 
-from thingsboard_gateway.connectors.modbus.entities.bytes_uplink_converter_config import BytesUplinkConverterConfig
-from thingsboard_gateway.gateway.tb_client import TBClient
-from thingsboard_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
-from thingsboard_gateway.tb_utility.tb_logger import TbLogger
+from iotplatform_gateway.connectors.modbus.entities.bytes_uplink_converter_config import BytesUplinkConverterConfig
+from iotplatform_gateway.gateway.tb_client import TBClient
+from iotplatform_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
+from iotplatform_gateway.tb_utility.tb_logger import TbLogger
 
 try:
     from pymodbus.client import ModbusTcpClient as ModbusClient
 except (ImportError, ModuleNotFoundError):
-    from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+    from iotplatform_gateway.tb_utility.tb_utility import TBUtility
     TBUtility.install_package("pyserial_asyncio")
     TBUtility.install_package("pymodbus", version="3.9.2", force_install=True)
     from pymodbus.client import ModbusTcpClient as ModbusClient
@@ -23,10 +23,10 @@ except (ImportError, ModuleNotFoundError):
 from pymodbus.pdu import ExceptionResponse
 
 from tests.base_test import BaseTest
-from thingsboard_gateway.connectors.modbus.bytes_modbus_downlink_converter import BytesModbusDownlinkConverter
-from thingsboard_gateway.connectors.modbus.bytes_modbus_uplink_converter import BytesModbusUplinkConverter
-from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
-from thingsboard_gateway.connectors.modbus.modbus_connector import AsyncModbusConnector
+from iotplatform_gateway.connectors.modbus.bytes_modbus_downlink_converter import BytesModbusDownlinkConverter
+from iotplatform_gateway.connectors.modbus.bytes_modbus_uplink_converter import BytesModbusUplinkConverter
+from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
+from iotplatform_gateway.connectors.modbus.modbus_connector import AsyncModbusConnector
 
 
 class ModbusConnectorTestsBase(BaseTest):
@@ -51,7 +51,7 @@ class ModbusConnectorTestsBase(BaseTest):
         self.connector.close()
         super().tearDown()
 
-    @patch('thingsboard_gateway.tb_utility.tb_logger.init_logger')
+    @patch('iotplatform_gateway.tb_utility.tb_logger.init_logger')
     def _create_connector(self, config_file_name, test_patch):
         test_patch.return_value = self.tb_logger
         try:

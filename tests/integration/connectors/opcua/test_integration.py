@@ -11,16 +11,16 @@
 #     # TODO - investigate the issue with the import of Node from asyncua and Cryptography in the tests
 #     pass
 # except (ImportError, ModuleNotFoundError):
-#     from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+#     from iotplatform_gateway.tb_utility.tb_utility import TBUtility
 #     TBUtility.install_package("asyncua")
 #     from asyncua import Node
 #
 # from tests.integration.connectors.opcua.helpers import wait_until, read_config, await_until, send_to_storage_to_timeseries, \
 #     list_intersect_ordered
 # from tests.integration.connectors.opcua.opcua_test_server import OpcUaTestServer
-# from thingsboard_gateway.connectors.opcua.opcua_connector import OpcUaConnector
-# from thingsboard_gateway.connectors.opcua_asyncio.opcua_connector import OpcUaConnectorAsyncIO
-# from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
+# from iotplatform_gateway.connectors.opcua.opcua_connector import OpcUaConnector
+# from iotplatform_gateway.connectors.opcua_asyncio.opcua_connector import OpcUaConnectorAsyncIO
+# from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
 #
 # logging.basicConfig(level=logging.INFO,
 #                     format='%(asctime)s - %(levelname)s - %(name)s - %(lineno)d - %(message)s',

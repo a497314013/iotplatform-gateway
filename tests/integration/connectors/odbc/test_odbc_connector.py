@@ -22,7 +22,7 @@
 # try :
 #     import pyodbc
 # except (ImportError, ModuleNotFoundError):
-#     from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+#     from iotplatform_gateway.tb_utility.tb_utility import TBUtility
 #     from sys import platform
 #     if platform == "darwin":
 #         from subprocess import check_call, CalledProcessError
@@ -36,10 +36,10 @@
 #         TBUtility.install_package("pyodbc")
 #     import pyodbc
 # from simplejson import load
-# from thingsboard_gateway.tb_utility.tb_utility import TBUtility
+# from iotplatform_gateway.tb_utility.tb_utility import TBUtility
 #
-# from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
-# from thingsboard_gateway.connectors.odbc.odbc_connector import OdbcConnector
+# from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
+# from iotplatform_gateway.connectors.odbc.odbc_connector import OdbcConnector
 #
 # logging.basicConfig(level=logging.DEBUG,
 #                     format='%(asctime)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s',

@@ -15,7 +15,7 @@
 from unittest.mock import patch, MagicMock, AsyncMock
 from bacpypes3.primitivedata import ObjectIdentifier
 from tests.unit.connectors.bacnet.bacnet_base_test import BacnetBaseTestCase
-from thingsboard_gateway.connectors.bacnet.device import Device
+from iotplatform_gateway.connectors.bacnet.device import Device
 from concurrent.futures import TimeoutError
 from threading import Thread
 

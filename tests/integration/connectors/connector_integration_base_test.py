@@ -22,10 +22,10 @@ from os import path
 from time import sleep
 from simplejson import load
 
-from thingsboard_gateway.gateway.tb_gateway_service import TBGatewayService
-from thingsboard_gateway.gateway.tb_gateway_service import DEFAULT_CONNECTORS
-from thingsboard_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
-from thingsboard_gateway.tb_utility.tb_loader import TBModuleLoader
+from iotplatform_gateway.gateway.tb_gateway_service import TBGatewayService
+from iotplatform_gateway.gateway.tb_gateway_service import DEFAULT_CONNECTORS
+from iotplatform_gateway.tb_utility.tb_handler import TBRemoteLoggerHandler
+from iotplatform_gateway.tb_utility.tb_loader import TBModuleLoader
 
 
 class ConnectorTestBase(IntegrationBaseTest):
@@ -34,7 +34,7 @@ class ConnectorTestBase(IntegrationBaseTest):
 
     def setUp(self):
         super().setUp()
-        self.mock_logger = patch('thingsboard_gateway.tb_utility.tb_logger.TbLogger').start()
+        self.mock_logger = patch('iotplatform_gateway.tb_utility.tb_logger.TbLogger').start()
         self.gateway = Mock(spec=TBGatewayService)
         self.gateway.remote_handler = Mock(spec=TBRemoteLoggerHandler)
         self.gateway.remote_handler.level = logging.DEBUG

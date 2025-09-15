@@ -171,7 +171,7 @@ class TestOpcUaDeviceServerSideRpc(OpcUABaseTest):
         self.assertEqual(rpc_request.rpc_method, "multiply")
 
         pending_future = Future()
-        OPC_MOD = "thingsboard_gateway.connectors.opcua.opcua_connector"
+        OPC_MOD = "iotplatform_gateway.connectors.opcua.opcua_connector"
 
         with patch.object(self.connector._OpcUaConnector__loop, "create_task", return_value=pending_future), \
                 patch(f"{OPC_MOD}.sleep", return_value=None), \
@@ -353,7 +353,7 @@ from asyncua import Node
 from asyncua.ua import NodeId
 
 from tests.unit.connectors.opcua.opcua_base_test import OpcUABaseTest
-from thingsboard_gateway.connectors.opcua.entities.rpc_request import OpcUaRpcRequest, OpcUaRpcType
+from iotplatform_gateway.connectors.opcua.entities.rpc_request import OpcUaRpcRequest, OpcUaRpcType
 
 
 class TestOpcUaReservedServerSideRpc(OpcUABaseTest):

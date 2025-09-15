@@ -18,9 +18,9 @@ services:
       - TB_GW_ACCESS_TOKEN=YOUR_ACCESS_TOKEN
       - TB_GW_RATE_LIMITS=0:0
     volumes:
-      - tb-gw-config:/thingsboard_gateway/config
-      - tb-gw-logs:/thingsboard_gateway/logs
-      - tb-gw-extensions:/thingsboard_gateway/extensions
+      - tb-gw-config:/iotplatform_gateway/config
+      - tb-gw-logs:/iotplatform_gateway/logs
+      - tb-gw-extensions:/iotplatform_gateway/extensions
     network_mode: host
   mqtt-broker:
     container_name: tests_mqtt_broker_1

@@ -2,7 +2,7 @@ import unittest
 from os import path
 from tests.unit.BaseUnitTest import BaseUnitTest
 from simplejson import load
-from thingsboard_gateway.connectors.socket.backward_compatibility_adapter import BackwardCompatibilityAdapter
+from iotplatform_gateway.connectors.socket.backward_compatibility_adapter import BackwardCompatibilityAdapter
 
 
 class SocketBackwardCompatibilityAdapterTests(BaseUnitTest):

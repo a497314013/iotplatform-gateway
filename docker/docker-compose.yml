@@ -24,13 +24,13 @@ services:
       - TB_GW_HOST=host.docker.internal
       - TB_GW_PORT=1883
       - TB_GW_ACCESS_TOKEN=YOUR_ACCESS_TOKEN
-      - TB_GW_LOGS_PATH=/thingsboard_gateway/logs
+      - TB_GW_LOGS_PATH=/iotplatform_gateway/logs
 
     # Volumes bind
     volumes:
-      - tb-gw-config:/thingsboard_gateway/config
-      - tb-gw-logs:/thingsboard_gateway/logs
-      - tb-gw-extensions:/thingsboard_gateway/extensions
+      - tb-gw-config:/iotplatform_gateway/config
+      - tb-gw-logs:/iotplatform_gateway/logs
+      - tb-gw-extensions:/iotplatform_gateway/extensions
 
 # Volumes declaration for configurations, extensions and configuration
 volumes:

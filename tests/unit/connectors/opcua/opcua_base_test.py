@@ -23,8 +23,8 @@ from asyncua import Node
 from asyncua.ua import NodeId
 from simplejson import load
 
-from thingsboard_gateway.connectors.opcua.device import Device
-from thingsboard_gateway.connectors.opcua.opcua_connector import OpcUaConnector
+from iotplatform_gateway.connectors.opcua.device import Device
+from iotplatform_gateway.connectors.opcua.opcua_connector import OpcUaConnector
 
 
 class OpcUABaseTest(IsolatedAsyncioTestCase):
@@ -115,7 +115,7 @@ class OpcUABaseTest(IsolatedAsyncioTestCase):
         with patch.object(self.connector._OpcUaConnector__loop, "create_task",
                           return_value=done_future) as create_task_mock:
             if patch_sleep:
-                with patch("thingsboard_gateway.connectors.opcua.opcua_connector.sleep", return_value=None):
+                with patch("iotplatform_gateway.connectors.opcua.opcua_connector.sleep", return_value=None):
                     yield create_task_mock
             else:
                 yield create_task_mock

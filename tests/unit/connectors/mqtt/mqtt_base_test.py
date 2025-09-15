@@ -17,7 +17,7 @@ from os import path
 from unittest.mock import MagicMock
 from tests.unit.BaseUnitTest import BaseUnitTest
 from simplejson import load
-from thingsboard_gateway.connectors.mqtt.mqtt_connector import MqttConnector
+from iotplatform_gateway.connectors.mqtt.mqtt_connector import MqttConnector
 
 
 class MqttBaseTest(BaseUnitTest):
