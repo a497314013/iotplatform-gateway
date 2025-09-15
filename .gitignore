@@ -15,7 +15,6 @@
 /data/
 /logs/
 __pycache__
-/*/config/
 venv
 .venv
 .env
