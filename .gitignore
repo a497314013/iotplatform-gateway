@@ -1,7 +1,7 @@
-iotplatform_gateway/venv/
-iotplatform_gateway/logs/*
-iotplatform_gateway/config/connected_devices.json
-iotplatform_gateway/storage/data/
+thingsboard_gateway/venv/
+thingsboard_gateway/logs/*
+thingsboard_gateway/config/connected_devices.json
+thingsboard_gateway/storage/data/
 .idea/
 .vscode/
 /build/
@@ -15,12 +15,12 @@ iotplatform_gateway/storage/data/
 /data/
 /logs/
 __pycache__
-/iotplatform_gateway/config/
+/*/config/
 venv
 .venv
 .env
 /for_build/etc/thingsboard-gateway/config/
-/iotplatform_gateway/logs/
+/thingsboard_gateway/logs/
 /tests/storage/
 /tests/blackbox/connectors/opcua/_trial_temp/
 /tests/blackbox/connectors/modbus/_trial_temp/
