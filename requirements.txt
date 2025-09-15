@@ -23,3 +23,7 @@ service-identity
 psutil
 cryptography
 PySocks
+opcua
+asyncua==1.1.5
+twisted
+pymodbus==3.9.2
