@@ -1,3 +1,0 @@
-[submodule "tb_mqtt_client"]
-	path = tb_mqtt_client
-	url = https://github.com/a497314013/tb-gateway-client.git
