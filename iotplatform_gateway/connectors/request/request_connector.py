@@ -30,6 +30,8 @@ from iotplatform_gateway.connectors.request.json_request_downlink_converter impo
 class RequestConnector(Connector, Thread):
     def __init__(self, gateway, config, connector_type):
         super().__init__()
+        # 新增：mapping缓存存储
+        self.__cache = {} # key: mappingName, value: dict of cached attributes
         self.__rpc_requests = []
         self.__config = config
         self.__id = self.__config.get('id')
@@ -218,6 +220,7 @@ class RequestConnector(Connector, Thread):
                 self.__requests_in_progress.append({"config": endpoint,
                                                     "converter": converter,
                                                     "next_time": time(),
+                                                    "mapping_name": endpoint.get("name"),
                                                     "request": request})
             except Exception as e:
                 self._log.exception(e)
@@ -287,7 +290,8 @@ class RequestConnector(Connector, Thread):
                         # Process sub requests if defined in config
                         if request["config"].get("subRequests"):
                             self.__process_sub_requests(request, url, config_converter_data[2], logger)
-                        self.__convert_data(config_converter_data)
+                        mapping_name = request.get("mapping_name")
+                        self.__convert_data(url, request["converter"], json_response, request["config"], mapping_name)
             else:
                 logger.error("Request to URL: %s finished with code: %i", url, response.status_code)
         except Timeout:
@@ -302,6 +306,8 @@ class RequestConnector(Connector, Thread):
 
     def __execute_request(self, request, request_url, logger):
         url = self.__host + request_url if not request_url.lower().startswith("http") else request_url
+        # 替换url
+        url = self.__replace_cache_values(url)
 
         request_timeout = request["config"].get("timeout", 1)
         params = {
@@ -313,10 +319,21 @@ class RequestConnector(Connector, Thread):
             "auth": self.__security,
             "data": request["config"].get("data", {})
         }
+
         logger.debug("Full url request has been formed - %s", url)
 
         if request["config"].get("httpHeaders") is not None:
             params["headers"] = request["config"]["httpHeaders"]
+
+        # 替换httpHeaders中的值
+        if "headers" in params and params["headers"]:
+            headers = {}
+            for k, v in params["headers"].items():
+                if isinstance(v, str):
+                    headers[k] = self.__replace_cache_values(v)
+                else:
+                    headers[k] = v
+            params["headers"] = headers
 
         logger.debug("Request to %s will be sent", url)
         if isinstance(params["data"], str):
@@ -325,9 +342,18 @@ class RequestConnector(Connector, Thread):
 
         return url, response
 
-    def __convert_data(self, data):
+    def __replace_cache_values(self, text: str):
+        import re
+        new_text = text  # 新建副本，不修改原始 text
+        matches = re.findall(r"\$\{([^.]+)\.([^\}]+)\}", text)
+        for mapping_name, key in matches:
+            value = self.__cache.get(mapping_name, {}).get(key, "")
+            new_text = new_text.replace(f"${{{mapping_name}.{key}}}", str(value))
+        return new_text
+
+    def __convert_data(self, url, converter, data, config, mapping_name=None):
         try:
-            url, converter, data = data
+            #url, converter, data = data
             data_to_send = []
 
             StatisticsService.count_connector_message(self.name, stat_parameter_name='connectorMsgsReceived')
@@ -337,16 +363,46 @@ class RequestConnector(Connector, Thread):
                 for data_item in data:
                     self.__add_ts(data_item)
                     converted_data = converter.convert(url, data_item)
+                    # 存 cache
+                    if mapping_name:
+                        self.__update_cache(mapping_name, converted_data,config)
                     data_to_send.append(converted_data)
             else:
                 self.__add_ts(data)
-                data_to_send.append(converter.convert(url, data))
+                converted_data = converter.convert(url, data)
+                if mapping_name:
+                    self.__update_cache(mapping_name, converted_data,config)
+                data_to_send.append(converted_data)
 
             for to_send in data_to_send:
+
                 self.__convert_queue.put(to_send)
 
         except Exception as e:
             self._log.exception(e)
+
+    def __update_cache(self, mapping_name, converted_data,config):
+        # 1. 缓存 attributes
+        if hasattr(converted_data, "attributes") and converted_data.attributes:
+            attr_defs = config.get("converter", {}).get("attributes", [])
+            for attr_def in attr_defs:
+                if attr_def.get("cache"):
+                    key = attr_def["key"]
+                    for dp_key, dp_value in converted_data.attributes.values.items():
+                        if getattr(dp_key, "key", None) == key:
+                            self.__cache.setdefault(mapping_name, {})[key] = dp_value
+                            break
+
+        # telemetry
+        if hasattr(converted_data, "telemetry") and converted_data.telemetry:
+            telem_defs = config.get("converter", {}).get("telemetry", [])
+            for telem_def in telem_defs:
+                if telem_def.get("cache"):
+                    key = telem_def["key"]
+                    for dp_key, dp_value in converted_data.telemetry.values.items():
+                        if getattr(dp_key, "key", None) == key:
+                            self.__cache.setdefault(mapping_name, {})[key] = dp_value
+                            break
 
     def __add_ts(self, data):
         if isinstance(data, list):
