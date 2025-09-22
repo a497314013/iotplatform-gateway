@@ -1,5 +1,6 @@
 import copy
 import json
+from iotplatform_gateway.gateway.constants import ReportStrategy
 from queue import Queue
 from random import choice
 from re import fullmatch
@@ -558,7 +559,6 @@ class RequestConnector(Connector, Thread):
                 data_to_send.append(converted_data)
 
             for to_send in data_to_send:
-
                 self.__convert_queue.put(to_send)
 
         except Exception as e:
@@ -595,11 +595,39 @@ class RequestConnector(Connector, Thread):
             if data.get("ts") is None:
                 data["ts"] = int(time() * 1000)
 
+    # def __process_data(self):
+    #     try:
+    #         if not self.__convert_queue.empty():
+    #             data: ConvertedData = self.__convert_queue.get()
+    #             if data and (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
+    #                 self.__gateway.send_to_storage(self.get_name(), self.get_id(), data)
+    #
+    #     except Exception as e:
+    #         self._log.exception(e)
+
     def __process_data(self):
         try:
             if not self.__convert_queue.empty():
                 data: ConvertedData = self.__convert_queue.get()
-                if data and (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
+                # 移除 attributes 中 report_strategy 为 DISABLED 的 datapoints
+                if hasattr(data, "attributes") and data.attributes:
+                    keys_to_remove = [dp_key for dp_key in data.attributes.values
+                                      if getattr(dp_key.report_strategy, "report_strategy",
+                                                 None) == ReportStrategy.DISABLED]
+                    for dp_key in keys_to_remove:
+                        del data.attributes.values[dp_key]
+
+                # 移除 telemetry 中 report_strategy 为 DISABLED 的 datapoints
+                if hasattr(data, "telemetry") and data.telemetry:
+                    for entry in data.telemetry:
+                        keys_to_remove = [dp_key for dp_key in entry.values
+                                          if getattr(dp_key.report_strategy, "report_strategy",
+                                                     None) == ReportStrategy.DISABLED]
+                        for dp_key in keys_to_remove:
+                            del entry.values[dp_key]
+
+                # 如果移除后还有数据再上报
+                if (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
                     self.__gateway.send_to_storage(self.get_name(), self.get_id(), data)
 
         except Exception as e:
