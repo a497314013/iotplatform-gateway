@@ -1,5 +1,6 @@
-
-
+import copy
+import json
+from iotplatform_gateway.gateway.constants import ReportStrategy
 from queue import Queue
 from random import choice
 from re import fullmatch
@@ -30,6 +31,8 @@ from iotplatform_gateway.connectors.request.json_request_downlink_converter impo
 class RequestConnector(Connector, Thread):
     def __init__(self, gateway, config, connector_type):
         super().__init__()
+        # 新增：mapping缓存存储
+        self.__cache = {} # key: mappingName, value: dict of cached attributes
         self.__rpc_requests = []
         self.__config = config
         self.__id = self.__config.get('id')
@@ -218,6 +221,7 @@ class RequestConnector(Connector, Thread):
                 self.__requests_in_progress.append({"config": endpoint,
                                                     "converter": converter,
                                                     "next_time": time(),
+                                                    "mapping_name": endpoint.get("name"),
                                                     "request": request})
             except Exception as e:
                 self._log.exception(e)
@@ -284,10 +288,17 @@ class RequestConnector(Connector, Thread):
                         config_converter_data.append(response.content)
 
                     if len(config_converter_data) == 3:
+                        # process sub mapping
+                        if request["config"].get("subMapping"):
+                            try:
+                                self.__process_sub_mappings(request, url, config_converter_data[2], logger)
+                            except Exception as e:
+                                logger.exception("Error while processing subMapping: %s", e)
                         # Process sub requests if defined in config
                         if request["config"].get("subRequests"):
                             self.__process_sub_requests(request, url, config_converter_data[2], logger)
-                        self.__convert_data(config_converter_data)
+                        mapping_name = request.get("mapping_name")
+                        self.__convert_data(url, request["converter"], json_response, request["config"], mapping_name)
             else:
                 logger.error("Request to URL: %s finished with code: %i", url, response.status_code)
         except Timeout:
@@ -300,8 +311,177 @@ class RequestConnector(Connector, Thread):
         except Exception as e:
             logger.exception(e)
 
+    def __replace_from_item(self, text: str, item: dict) -> str:
+        import re
+        new_text = text
+
+        # 匹配 ${...} 占位符
+        matches = re.findall(r"\$\{([^\}]+)\}", text)
+        for match in matches:
+            try:
+                # 用 get_value 取值，支持 JSON 路径/表达式
+                value = TBUtility.get_value(match, item, value_type="json")
+                if value is not None:
+                    new_text = new_text.replace(f"${{{match}}}", str(value))
+            except Exception:
+                new_text = text
+        return new_text
+
+    def __process_sub_mappings(self, request, parent_url, data, logger):
+        """
+        新增：处理 mapping 下的 subMapping 配置
+        - request: 父请求对象（包含 config）
+        - parent_url: 父请求构成的 url（用于相对地址拼接）
+        - data: 父请求的 JSON 响应（可以是 list 或 dict）
+        """
+        # 支持 data 为 list 或单个对象
+        try:
+            config = request["config"]
+            sub_mapping = config.get("subMapping")
+            if not sub_mapping:
+                return
+
+            # 支持 subMapping 为 dict（单条）或 list（多条）
+            sub_mappings = sub_mapping if isinstance(sub_mapping, list) else [sub_mapping]
+
+            # 逐个 subMapping 处理
+            for sm in sub_mappings:
+                loop_expr = sm.get("loop")
+                if not loop_expr:
+                    logger.warning("subMapping missing 'loop' expression - skipping")
+                    continue
+
+                # strip ${...} 如果存在
+                expr = loop_expr
+                if isinstance(loop_expr, str) and loop_expr.startswith("${") and loop_expr.endswith("}"):
+                    expr = loop_expr[2:-1]
+
+                # 从父响应中获取 loop 对应的 list（使用 TBUtility.get_value）
+                loop_list = TBUtility.get_value(expr, data, value_type="json")
+                if loop_list is None:
+                    logger.debug("subMapping loop returned None for expr %s", expr)
+                    continue
+                if not isinstance(loop_list, list):
+                    logger.error("subMapping.loop must evaluate to a list, got: %s (expr=%s)", type(loop_list), expr)
+                    continue
+
+                # 对 loop_list 中每个元素发起子请求
+                for item in loop_list:
+                    # construct sub request config as a deep copy so we don't mutate original
+                    sub_conf = copy.deepcopy(sm)
+                    # remove loop from sub_conf so it won't be used as request field
+                    sub_conf.pop("loop", None)
+
+                    # replace ${result.xxx} placeholders in URL / data / headers using __replace_cache_values
+                    sub_url_raw = sub_conf.get("url", "")
+                    try:
+                        request_url_from_config = self.__replace_from_item(sub_url_raw, item)
+                    except Exception:
+                        # fallback: if TBUtility fails, do a simple str replace for ${result.}
+                        request_url_from_config = sub_url_raw
+                    # allow templates referencing item via ${result.xxx}
+
+                    # if relative url, make absolute relative to parent_url
+                    if not request_url_from_config.lower().startswith("http"):
+                        if not request_url_from_config.startswith("/"):
+                            request_url_from_config = "/" + request_url_from_config
+                        request_url_from_config = self.__host + request_url_from_config
+
+                    logger.debug("subMapping: sending sub request to %s", request_url_from_config)
+
+                    # prepare a temporary request wrapper (copy parent request but override config)
+                    temp_request = {
+                        "config": copy.deepcopy(request["config"]),  # base on parent config
+                        "request": request["request"]
+                    }
+                    # override specific fields from sub_conf
+                    # allowed overrides: url/httpMethod/httpHeaders/data/timeout/allowRedirects/ssl etc.
+                    for key in ("httpMethod", "httpHeaders", "data", "timeout", "allowRedirects", "SSLVerify",
+                                "security"):
+                        if key in sub_conf:
+                            temp_request["config"][key] = sub_conf[key]
+                    # ensure converter for sub request is the sub_conf.converter
+                    temp_request["config"]["converter"] = sub_conf.get("converter", {})
+
+                    # Before execute: replace ${result.xxx} in headers and data if they exist
+                    if temp_request["config"].get("httpHeaders"):
+                        new_headers = {}
+                        for hk, hv in temp_request["config"]["httpHeaders"].items():
+                            try:
+                                new_headers[hk] = self.__replace_from_item(hv, item)
+                            except Exception:
+                                new_headers[hk] = hv
+
+                        temp_request["config"]["httpHeaders"] = new_headers
+
+                    if temp_request["config"].get("data") and isinstance(temp_request["config"].get("data"), str):
+                        try:
+                            temp_request["config"]["data"] = self.__replace_from_item(temp_request["config"]["data"], item)
+                        except Exception:
+                            pass
+
+                    # Now execute the sub request (this will also apply cache-based replacements via __execute_request)
+                    try:
+                        sub_url, sub_resp = self.__execute_request(temp_request, request_url_from_config, logger)
+                    except Exception as e:
+                        logger.exception("subMapping __execute_request failed: %s", e)
+                        continue
+
+                    # If response ok -> convert and push to convert queue
+                    if sub_resp and sub_resp.ok:
+                        try:
+                            sub_json = sub_resp.json()
+                        except Exception:
+                            sub_json = sub_resp.content
+
+                        # Instantiate converter for subMapping (support custom converters)
+                        sub_converter = None
+                        conv_conf = temp_request["config"].get("converter", {})
+                        if isinstance(conv_conf, dict) and conv_conf.get("type") == "custom":
+                            module = TBModuleLoader.import_module(self._connector_type, conv_conf.get("extension"))
+                            if module:
+                                sub_converter = module(sub_conf, self._converter_log)
+                            else:
+                                logger.error("Cannot find custom converter module for subMapping - skipping")
+                                continue
+                        else:
+                            # JsonRequestUplinkConverter expects the full endpoint config,
+                            # use sub_conf as endpoint for converter instantiation
+                            try:
+                                sub_converter = JsonRequestUplinkConverter(sub_conf, self._log)
+                            except Exception as e:
+                                logger.exception("Error creating JsonRequestUplinkConverter for subMapping: %s", e)
+                                continue
+
+                        # sub_json might be list or single object
+                        if isinstance(sub_json, list):
+                            for sub_item in sub_json:
+                                self.__add_ts(sub_item)
+                                try:
+                                    converted = sub_converter.convert(sub_url, sub_item)
+                                    # 推送到 convert queue（不传 mapping_name）
+                                    self.__convert_queue.put(converted)
+                                except Exception as e:
+                                    logger.exception("Error converting subMapping response item: %s", e)
+                        else:
+                            self.__add_ts(sub_json)
+                            try:
+                                converted = sub_converter.convert(sub_url, sub_json)
+                                self.__convert_queue.put(converted)
+                            except Exception as e:
+                                logger.exception("Error converting subMapping response: %s", e)
+
+                    else:
+                        logger.debug("subMapping request to %s finished with code: %s", request_url_from_config,
+                                     getattr(sub_resp, "status_code", None))
+
+        except Exception as e:
+            logger.exception("Exception in __process_sub_mappings: %s", e)
+
     def __execute_request(self, request, request_url, logger):
         url = self.__host + request_url if not request_url.lower().startswith("http") else request_url
+        # 替换url
+        url = self.__replace_cache_values(url)
 
         request_timeout = request["config"].get("timeout", 1)
         params = {
@@ -313,21 +493,51 @@ class RequestConnector(Connector, Thread):
             "auth": self.__security,
             "data": request["config"].get("data", {})
         }
+
         logger.debug("Full url request has been formed - %s", url)
 
         if request["config"].get("httpHeaders") is not None:
             params["headers"] = request["config"]["httpHeaders"]
 
+        # 替换httpHeaders中的值
+        if "headers" in params and params["headers"]:
+            headers = {}
+            for k, v in params["headers"].items():
+                if isinstance(v, str):
+                    headers[k] = self.__replace_cache_values(v)
+                else:
+                    headers[k] = v
+            params["headers"] = headers
+
         logger.debug("Request to %s will be sent", url)
+
+
         if isinstance(params["data"], str):
+            # 替换data中的值
+            params["data"] = self.__replace_cache_values(params["data"])
             params["data"] = params["data"].encode("utf-8")
+        else:
+            params["data"] = json.dumps(params["data"])
+            # 替换data中的值
+            params["data"] = self.__replace_cache_values(params["data"])
+
+        logger.trace("Request params: %s", params)
         response = request["request"](**params)
 
         return url, response
 
-    def __convert_data(self, data):
+    def __replace_cache_values(self, text: str):
+        import re
+        new_text = text  # 新建副本，不修改原始 text
+        matches = re.findall(r"\$\{([^.]+)\.([^\}]+)\}", text)
+        for mapping_name, key in matches:
+            value = self.__cache.get(mapping_name, {}).get(key, "")
+            new_text = new_text.replace(f"${{{mapping_name}.{key}}}", str(value))
+        return new_text
+
+    def __convert_data(self, url, converter, data, config, mapping_name=None):
         try:
-            url, converter, data = data
+            #url, converter, data = data
             data_to_send = []
 
             StatisticsService.count_connector_message(self.name, stat_parameter_name='connectorMsgsReceived')
@@ -337,16 +547,45 @@ class RequestConnector(Connector, Thread):
                 for data_item in data:
                     self.__add_ts(data_item)
                     converted_data = converter.convert(url, data_item)
+                    # 存 cache
+                    if mapping_name:
+                        self.__update_cache(mapping_name, converted_data,config)
                     data_to_send.append(converted_data)
             else:
                 self.__add_ts(data)
-                data_to_send.append(converter.convert(url, data))
+                converted_data = converter.convert(url, data)
+                if mapping_name:
+                    self.__update_cache(mapping_name, converted_data,config)
+                data_to_send.append(converted_data)
 
             for to_send in data_to_send:
                 self.__convert_queue.put(to_send)
 
         except Exception as e:
             self._log.exception(e)
+
+    def __update_cache(self, mapping_name, converted_data,config):
+        # 1. 缓存 attributes
+        if hasattr(converted_data, "attributes") and converted_data.attributes:
+            attr_defs = config.get("converter", {}).get("attributes", [])
+            for attr_def in attr_defs:
+                if attr_def.get("cache"):
+                    key = attr_def["key"]
+                    for dp_key, dp_value in converted_data.attributes.values.items():
+                        if getattr(dp_key, "key", None) == key:
+                            self.__cache.setdefault(mapping_name, {})[key] = dp_value
+                            break
+
+        # telemetry
+        if hasattr(converted_data, "telemetry") and converted_data.telemetry:
+            telem_defs = config.get("converter", {}).get("telemetry", [])
+            for telem_def in telem_defs:
+                if telem_def.get("cache"):
+                    key = telem_def["key"]
+                    for dp_key, dp_value in converted_data.telemetry.values.items():
+                        if getattr(dp_key, "key", None) == key:
+                            self.__cache.setdefault(mapping_name, {})[key] = dp_value
+                            break
 
     def __add_ts(self, data):
         if isinstance(data, list):
@@ -356,11 +595,39 @@ class RequestConnector(Connector, Thread):
             if data.get("ts") is None:
                 data["ts"] = int(time() * 1000)
 
+    # def __process_data(self):
+    #     try:
+    #         if not self.__convert_queue.empty():
+    #             data: ConvertedData = self.__convert_queue.get()
+    #             if data and (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
+    #                 self.__gateway.send_to_storage(self.get_name(), self.get_id(), data)
+    #
+    #     except Exception as e:
+    #         self._log.exception(e)
+
     def __process_data(self):
         try:
             if not self.__convert_queue.empty():
                 data: ConvertedData = self.__convert_queue.get()
-                if data and (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
+                # 移除 attributes 中 report_strategy 为 DISABLED 的 datapoints
+                if hasattr(data, "attributes") and data.attributes:
+                    keys_to_remove = [dp_key for dp_key in data.attributes.values
+                                      if getattr(dp_key.report_strategy, "report_strategy",
+                                                 None) == ReportStrategy.DISABLED]
+                    for dp_key in keys_to_remove:
+                        del data.attributes.values[dp_key]
+
+                # 移除 telemetry 中 report_strategy 为 DISABLED 的 datapoints
+                if hasattr(data, "telemetry") and data.telemetry:
+                    for entry in data.telemetry:
+                        keys_to_remove = [dp_key for dp_key in entry.values
+                                          if getattr(dp_key.report_strategy, "report_strategy",
+                                                     None) == ReportStrategy.DISABLED]
+                        for dp_key in keys_to_remove:
+                            del entry.values[dp_key]
+
+                # 如果移除后还有数据再上报
+                if (data.attributes_datapoints_count > 0 or data.telemetry_datapoints_count > 0):
                     self.__gateway.send_to_storage(self.get_name(), self.get_id(), data)
 
         except Exception as e:
