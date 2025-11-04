@@ -130,6 +130,8 @@ class RPCRequest:
                 params[key] = value if key not in ('functionCode', 'objectsCount', 'address') else int(
                     value)
 
+        if not params: #用于后续判断如果是通过键名执行读写
+            params = content.get(DATA_PARAMETER, {}).get(RPC_PARAMS_PARAMETER, {}).split(" ")[0]
         self.params = params
 
     def can_return_response(self):
