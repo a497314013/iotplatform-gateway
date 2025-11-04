@@ -478,6 +478,23 @@ class AsyncModbusConnector(Connector, Thread):
             self.__log.error('Device %s not found in connector %s', rpc_request.device_name, self.get_name())
             return {'error': 'Device %s not found' % rpc_request.device_name, 'success': False}
 
+        if isinstance(rpc_request.params, str): # get param from attribute/timeseries config
+            config = None
+            for section in ("attributes", "telemetry"):
+                configs = getattr(device.uplink_converter_config, section, [])
+                for cfg in configs:
+                    if cfg.get("tag") == rpc_request.params:
+                        config = cfg.copy()
+                        break
+                if config:
+                    if rpc_request.method == 'set':
+                        if config.get("functionCode") == 3:
+                            config['functionCode'] = 16
+                        else:
+                            config['functionCode'] = 15
+                    rpc_request.params = config
+                    break
+
         result = {}
         self.__create_task(self.__process_rpc_request,
                            (device, rpc_request.params, rpc_request),
