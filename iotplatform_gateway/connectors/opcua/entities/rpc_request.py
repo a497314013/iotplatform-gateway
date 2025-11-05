@@ -76,7 +76,7 @@ class OpcUaRpcRequest:
     @staticmethod
     def _is_reserved_rpc(content: dict) -> bool:
         rpc_method = content[DATA_PARAMETER][RPC_METHOD_PARAMETER].lower()
-        if rpc_method == 'get' or rpc_method == 'set' and content.get(DEVICE_SECTION_PARAMETER):
+        if rpc_method == 'get' or rpc_method == 'set' or rpc_method == 'set_get' and content.get(DEVICE_SECTION_PARAMETER):
             return True
 
         return False
@@ -99,7 +99,7 @@ class OpcUaRpcRequest:
         if self.rpc_method == "get":
             self.params = self.params.rstrip(' ;\t\n\r')
             return
-        if self.rpc_method != "set" or not isinstance(params, str):
+        if (self.rpc_method != "set" and self.rpc_method != "set_get" ) or not isinstance(params, str):
             return
         ident = self.__find_identifier_request(params)
 
@@ -110,20 +110,30 @@ class OpcUaRpcRequest:
             self.arguments = sub(r"[;\s]+$", "", value.split(delimiter)[-1]).strip(' ;')
             return
 
-        delimiter = next((p for p in RPC_SET_SPLIT_PATTERNS if p in params), None)
-        parts = (
-            [p.strip() for p in params.split(delimiter) if p.strip()]
-            if delimiter
-            else [params.strip()]
-        )
+        if not '&&' in params:
+            delimiter = next((p for p in RPC_SET_SPLIT_PATTERNS if p in params), None)
+            parts = (
+                [p.strip() for p in params.split(delimiter) if p.strip()]
+                if delimiter
+                else [params.strip()]
+            )
+        else:
+            '''增加批量写入逻辑，使用&&符号分割，例如error_msg=sfas && f_flag=2'''
+            delimiter = '&&'
+            pairs = [p.strip() for p in params.split('&&') if p.strip()]
+            keys = [p.split('=')[0].strip() for p in pairs]
+            values = [p.split('=')[1].strip() for p in pairs]
+            parts = [keys, values]
 
         if not delimiter or len(parts) != 2:
             return
 
         full_path, value = parts
         self.params = full_path
-        self.arguments = sub(r"[;\s]+$", "", value)
-
+        if isinstance(value,str):
+            self.arguments = sub(r"[;\s]+$", "", value)
+        else:
+            self.arguments = [sub(r"[;\s]+$", "", arg) for arg in value]
     def _fill_device_rpc_request(self, content: dict):
         rpc_section = content[DATA_PARAMETER].get(RPC_METHOD_PARAMETER)
         self.rpc_method = rpc_section

@@ -1288,10 +1288,19 @@ class OpcUaConnector(Connector, Thread):
                                                   "result": {"error": 'Could not find node for requested rpc request'}})
 
         elif not is_node_id:
-
-            identifier = device.get_node_by_key(rpc_request.params)
-            if not identifier:
-                identifier = self.find_full_node_path(params=rpc_request.params, device=device)
+            if not isinstance(rpc_request.params,list) and ',' not in rpc_request.params:
+                identifier = device.get_node_by_key(rpc_request.params)
+                if not identifier:
+                    identifier = self.find_full_node_path(params=rpc_request.params, device=device)
+            else:
+                '''增加批量读取/写入逻辑'''
+                identifier = []
+                if isinstance(rpc_request.params, list):
+                    for ident in rpc_request.params:
+                        identifier.append(device.get_node_by_key(ident.strip()))
+                else:
+                    for ident in rpc_request.params.split(','):
+                        identifier.append(device.get_node_by_key(ident.strip()))
             rpc_request.received_identifier = identifier
 
         try:
@@ -1316,7 +1325,7 @@ class OpcUaConnector(Connector, Thread):
             self.__gateway.send_rpc_reply(rpc_request.device_name, rpc_request.id,
                                           {"result": {"error": str(e)}})
 
-    async def __process_rpc_request(self, identifier: Node | str, rpc_request: OpcUaRpcRequest):
+    async def __process_rpc_request(self, identifier, rpc_request: OpcUaRpcRequest):
         result = {}
         try:
             if rpc_request.rpc_method == 'get':
@@ -1324,6 +1333,9 @@ class OpcUaConnector(Connector, Thread):
                 return result
             elif rpc_request.rpc_method == 'set':
                 result = await self.__write_value(identifier, rpc_request.arguments)
+                return result
+            elif rpc_request.rpc_method == 'set_get':
+                result = await self.__write_value_and_read(identifier, rpc_request.arguments)
                 return result
             else:
                 result['response'] = 'Unsupported function code in RPC request.'
@@ -1335,7 +1347,6 @@ class OpcUaConnector(Connector, Thread):
 
     async def __write_value(self, path, value):
         result = {}
-
         try:
             var = path
             if isinstance(path, str):
@@ -1343,14 +1354,55 @@ class OpcUaConnector(Connector, Thread):
             elif isinstance(path, NodeId):
                 var = self.__client.get_node(path)
 
-            try:
-                await var.write_value(value)
-            except (BadWriteNotSupported, BadTypeMismatch):
-                value = self.__guess_type_and_cast(value)
-                data_value = ua.DataValue(ua.Variant(value))
-                await var.write_value(data_value)
+            '''增加批量写入逻辑'''
+            if isinstance(var, list):
+                value = [ self.__guess_type_and_cast(v) for v in value]
+                data_value = [ua.DataValue(ua.Variant(v)) for v in value]
+                rs = await self.__client.write_values(var, data_value)
+            else:
+                try:
+                    await var.write_value(value)
+                except (BadWriteNotSupported, BadTypeMismatch):
+                    value = self.__guess_type_and_cast(value)
+                    data_value = ua.DataValue(ua.Variant(value))
+                    await var.write_value(data_value)
 
             result['value'] = value
+            return result
+        except UaStringParsingError:
+            error_response = f"Could not find identifier in string {path}"
+            result['error'] = error_response
+            self.__log.error(error_response)
+            return result
+        except Exception as e:
+            result['error'] = e.__str__()
+            self.__log.error("Can not find node for provided path %s ", path)
+            return result
+
+    async def __write_value_and_read(self, path, value):
+        result = {}
+        try:
+            var = path
+            if isinstance(path, str):
+                var = self.__client.get_node(path.replace('\\.', '.'))
+            elif isinstance(path, NodeId):
+                var = self.__client.get_node(path)
+
+            '''增加批量写入逻辑'''
+            if isinstance(var, list):
+                value = [ self.__guess_type_and_cast(v) for v in value]
+                data_value = [ua.DataValue(ua.Variant(v)) for v in value]
+                await self.__client.write_values(var, data_value)
+                result['value'] = await self.__client.read_values(var)
+            else:
+                try:
+                    await var.write_value(value)
+                except (BadWriteNotSupported, BadTypeMismatch):
+                    value = self.__guess_type_and_cast(value)
+                    data_value = ua.DataValue(ua.Variant(value))
+                    await var.write_value(data_value)
+
+                result['value'] = await var.read_value()
             return result
         except UaStringParsingError:
             error_response = f"Could not find identifier in string {path}"
@@ -1380,11 +1432,16 @@ class OpcUaConnector(Connector, Thread):
 
     async def __read_value(self, path):
         result = {}
-
         try:
-            var = self.__client.get_node(path)
-            result['value'] = await var.read_value()
-            return result
+            if not isinstance(path, list):
+                var = self.__client.get_node(path)
+                result['value'] = await var.read_value()
+                return result
+            else:
+                '''增加批量读取逻辑,返回数组'''
+                values = await self.__client.read_values(path)
+                result['value'] = values
+                return result
         except UaStringParsingError:
             error_response = f"Could not find identifier in string {path}"
             result['error'] = error_response
