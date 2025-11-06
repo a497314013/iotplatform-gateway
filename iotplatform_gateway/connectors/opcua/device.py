@@ -110,11 +110,12 @@ class Device:
 
         self._log.debug('Loaded %r values for %s', len(self.values), self.name)
 
+    '''修改返回值，用于自动适应类型写入'''
     def get_node_by_key(self, key):
         try:
             for node_config in self.nodes:
                 if node_config['key'] == key:
-                    return node_config['node']
+                    return node_config
             return None
         except KeyError:
             return None

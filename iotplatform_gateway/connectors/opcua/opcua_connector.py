@@ -48,7 +48,6 @@ if installation_required:
 import asyncua
 from asyncua import ua, Node
 from asyncua.ua import NodeId, UaStringParsingError
-from asyncua.common.ua_utils import value_to_datavalue
 from asyncua.ua.uaerrors import BadWriteNotSupported, BadTypeMismatch
 from asyncua.crypto.security_policies import SecurityPolicyBasic256Sha256, SecurityPolicyBasic256, \
     SecurityPolicyBasic128Rsa15
@@ -348,9 +347,9 @@ class OpcUaConnector(Connector, Thread):
                     continue
                 self.__log.info("Connected to OPC-UA Server: %s", self.__opcua_url)
                 self.__connected = True
-
+                obj = None
                 try:
-                    await self.__client.load_data_type_definitions()
+                    obj = await self.__client.load_data_type_definitions()
                 except Exception as e:
                     self.__log.error("Error on loading type definitions:\n %s", e)
 
@@ -797,13 +796,52 @@ class OpcUaConnector(Connector, Thread):
                         self.__log.info('Added device node: %s', device_name)
         self.__log.debug('Device nodes: %s', self.__device_nodes)
 
+    async def get_node_variant_type(self,node):
+        """
+        获取节点对应的 VariantType
+        """
+        # 读取节点 DataType
+        datatype_attr = await node.read_attribute(ua.AttributeIds.DataType)
+        datatype_node_id = datatype_attr.Value.Value
+        datatype_node = self.__client.get_node(datatype_node_id)
+        browse_name = await datatype_node.read_browse_name()
+        datatype_name = browse_name.Name
+
+        # OPC UA DataType -> ua.VariantType 映射
+        type_map = {
+            "Boolean": ua.VariantType.Boolean,
+            "SByte": ua.VariantType.SByte,
+            "Byte": ua.VariantType.Byte,
+            "Int16": ua.VariantType.Int16,
+            "UInt16": ua.VariantType.UInt16,
+            "Int32": ua.VariantType.Int32,
+            "UInt32": ua.VariantType.UInt32,
+            "Int64": ua.VariantType.Int64,
+            "UInt64": ua.VariantType.UInt64,
+            "Float": ua.VariantType.Float,
+            "Double": ua.VariantType.Double,
+            "String": ua.VariantType.String,
+            "DateTime": ua.VariantType.DateTime,
+        }
+
+        if datatype_name not in type_map:
+            # 未知类型，默认用 String
+            variant_type = ua.VariantType.String
+        else:
+            variant_type = type_map[datatype_name]
+
+        return variant_type
+
     async def _load_devices_nodes(self):
         for device in self.__device_nodes:
-            device.nodes = []
+            # device.nodes = []
             for section in ('attributes', 'timeseries'):
                 self.__log.info('Loading nodes for device: %s, section: %s, nodes count: %s', device.name, section,
                                 len(device.values.get(section, [])))
                 for node in device.values.get(section, []):
+                    '''添加逻辑：如果node已经被注册，则不需要重新扫描'''
+                    if any(nc.get("key") == node['key'] for nc in device.nodes):
+                        continue
                     try:
                         path = node.get('qualified_path', node['path'])
                         if self.__is_node_identifier(path):
@@ -833,6 +871,7 @@ class OpcUaConnector(Connector, Thread):
                             else:
                                 found_node = await self.__client.nodes.root.get_child(path)
 
+                        variant_type = await self.get_node_variant_type(found_node)
                         node_report_strategy = node.get(REPORT_STRATEGY_PARAMETER)
                         if self.__gateway.get_report_strategy_service() is not None:
                             if node_report_strategy is not None:
@@ -847,7 +886,7 @@ class OpcUaConnector(Connector, Thread):
                                 node_report_strategy = device.report_strategy
 
                         node_config = {"node": found_node, "key": node['key'],
-                                       "section": section,
+                                       "section": section,"variantType":variant_type,
                                        'timestampLocation': node.get('timestampLocation', 'gateway')}
                         if self.__gateway.get_report_strategy_service() is not None and node_report_strategy is not None:
                             node_config[REPORT_STRATEGY_PARAMETER] = node_report_strategy
@@ -1288,19 +1327,25 @@ class OpcUaConnector(Connector, Thread):
                                                   "result": {"error": 'Could not find node for requested rpc request'}})
 
         elif not is_node_id:
+            '''单个读/写'''
             if not isinstance(rpc_request.params,list) and ',' not in rpc_request.params:
-                identifier = device.get_node_by_key(rpc_request.params)
+                identifier = device.get_node_by_key(rpc_request.params.strip())
                 if not identifier:
-                    identifier = self.find_full_node_path(params=rpc_request.params, device=device)
+                    identifier = self.find_full_node_path(params=rpc_request.params.strip(), device=device)
             else:
                 '''增加批量读取/写入逻辑'''
                 identifier = []
+                '''批量写'''
                 if isinstance(rpc_request.params, list):
                     for ident in rpc_request.params:
                         identifier.append(device.get_node_by_key(ident.strip()))
                 else:
+                    '''批量读'''
                     for ident in rpc_request.params.split(','):
-                        identifier.append(device.get_node_by_key(ident.strip()))
+                        node = device.get_node_by_key(ident.strip())
+                        if node:
+                            node = node['node']
+                        identifier.append(node)
             rpc_request.received_identifier = identifier
 
         try:
@@ -1356,16 +1401,23 @@ class OpcUaConnector(Connector, Thread):
 
             '''增加批量写入逻辑'''
             if isinstance(var, list):
-                value = [ self.__guess_type_and_cast(v) for v in value]
-                data_value = [ua.DataValue(ua.Variant(v)) for v in value]
-                rs = await self.__client.write_values(var, data_value)
+                value = [self.__convert_by_variant_type(v, n["variantType"]) for n, v in zip(var, value)]
+                data_values = [ua.DataValue(ua.Variant(cv, n["variantType"])) for n, cv in zip(var, value)]
+                nodes = [n['node'] for n in var]
+                await self.__client.write_values(nodes, data_values)
             else:
-                try:
-                    await var.write_value(value)
-                except (BadWriteNotSupported, BadTypeMismatch):
-                    value = self.__guess_type_and_cast(value)
-                    data_value = ua.DataValue(ua.Variant(value))
-                    await var.write_value(data_value)
+                if isinstance(var, dict):
+                    datatype = var['variantType']
+                    value = self.__convert_by_variant_type(value, datatype)
+                    data_value = ua.DataValue(ua.Variant(value, datatype))
+                    await var['node'].write_value(data_value)
+                else:
+                    try:
+                        await var.write_value(value)
+                    except (BadWriteNotSupported, BadTypeMismatch):
+                        value = self.__guess_type_and_cast(value)
+                        data_value = ua.DataValue(ua.Variant(value))
+                        await var.write_value(data_value)
 
             result['value'] = value
             return result
@@ -1390,18 +1442,26 @@ class OpcUaConnector(Connector, Thread):
 
             '''增加批量写入逻辑'''
             if isinstance(var, list):
-                value = [ self.__guess_type_and_cast(v) for v in value]
-                data_value = [ua.DataValue(ua.Variant(v)) for v in value]
-                await self.__client.write_values(var, data_value)
-                result['value'] = await self.__client.read_values(var)
+                data_values = [
+                    ua.DataValue(ua.Variant(self.__convert_by_variant_type(v, n["variantType"]), n["variantType"]))
+                    for n, v in zip(var, value)
+                ]
+                nodes = [n['node'] for n in var]
+                await self.__client.write_values(nodes, data_values)
+                result['value'] = await self.__client.read_values(nodes)
             else:
-                try:
-                    await var.write_value(value)
-                except (BadWriteNotSupported, BadTypeMismatch):
-                    value = self.__guess_type_and_cast(value)
-                    data_value = ua.DataValue(ua.Variant(value))
+                if isinstance(var, dict):
+                    datatype = var['variantType']
+                    var = var['node']
+                    data_value = ua.DataValue(ua.Variant(self.__convert_by_variant_type(value, datatype), datatype))
                     await var.write_value(data_value)
-
+                else:
+                    try:
+                        await var.write_value(value)
+                    except (BadWriteNotSupported, BadTypeMismatch):
+                        value = self.__guess_type_and_cast(value)
+                        data_value = ua.DataValue(ua.Variant(value))
+                        await var.write_value(data_value)
                 result['value'] = await var.read_value()
             return result
         except UaStringParsingError:
@@ -1415,15 +1475,55 @@ class OpcUaConnector(Connector, Thread):
             return result
 
     @staticmethod
+    def __convert_by_variant_type(value, variant_type):
+        """
+        根据 VariantType 自动转换值
+        """
+        if value is None:
+            return None
+
+        try:
+            if variant_type in (
+                    ua.VariantType.Byte, ua.VariantType.UInt16,
+                    ua.VariantType.UInt32, ua.VariantType.UInt64,
+                    ua.VariantType.SByte, ua.VariantType.Int16,
+                    ua.VariantType.Int32, ua.VariantType.Int64,
+            ):
+                return int(value)
+
+            elif variant_type in (ua.VariantType.Float, ua.VariantType.Double):
+                return float(value)
+
+            elif variant_type == ua.VariantType.Boolean:
+                if isinstance(value, str):
+                    return value.strip().lower() in ("1", "true", "yes", "on")
+                return bool(value)
+
+            elif variant_type in (ua.VariantType.String, ua.VariantType.ByteString):
+                return str(value)
+
+            elif variant_type in (ua.VariantType.DateTime,):
+                from dateutil import parser
+                return parser.parse(value) if isinstance(value, str) else value
+
+            elif variant_type in (ua.VariantType.Guid,):
+                from uuid import UUID
+                return UUID(value) if isinstance(value, str) else value
+
+            else:
+                return value
+
+        except Exception as e:
+            return value
+
+    @staticmethod
     def __guess_type_and_cast(value):
         if isinstance(value, str):
             if value.lower() in ['true', 'false']:
                 return value.lower() == 'true'
-
             try:
                 if '.' in value:
                     return float(value)
-
                 return int(value)
             except ValueError:
                 return value
@@ -1432,9 +1532,13 @@ class OpcUaConnector(Connector, Thread):
 
     async def __read_value(self, path):
         result = {}
+        var = path
         try:
             if not isinstance(path, list):
-                var = self.__client.get_node(path)
+                if isinstance(path,dict):
+                    var = path['node']
+                elif isinstance(path,str):
+                    var = self.__client.get_node(path)
                 result['value'] = await var.read_value()
                 return result
             else:
