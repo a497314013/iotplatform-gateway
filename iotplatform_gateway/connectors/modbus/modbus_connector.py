@@ -479,21 +479,12 @@ class AsyncModbusConnector(Connector, Thread):
             return {'error': 'Device %s not found' % rpc_request.device_name, 'success': False}
 
         if isinstance(rpc_request.params, str): # get param from attribute/timeseries config
-            config = None
-            for section in ("attributes", "telemetry"):
-                configs = getattr(device.uplink_converter_config, section, [])
-                for cfg in configs:
-                    if cfg.get("tag") == rpc_request.params:
-                        config = cfg.copy()
-                        break
-                if config:
-                    if rpc_request.method == 'set':
-                        if config.get("functionCode") == 3:
-                            config['functionCode'] = 16
-                        else:
-                            config['functionCode'] = 15
-                    rpc_request.params = config
-                    break
+            rpc_request.params = self.load_request_config(device, rpc_request.method, rpc_request.params)
+        elif isinstance(rpc_request.params, list): # for batch update/read
+            params = []
+            for param in rpc_request.params:
+                params.append(self.load_request_config(device, rpc_request.method, param))
+            rpc_request.params = params
 
         result = {}
         self.__create_task(self.__process_rpc_request,
@@ -504,6 +495,23 @@ class AsyncModbusConnector(Connector, Thread):
         self.__log.debug("Result: %r", result)
 
         return result['response']
+
+    def load_request_config(self, device: Slave, method, params):
+        config = None
+        for section in ("attributes", "telemetry"):
+            configs = getattr(device.uplink_converter_config, section, [])
+            for cfg in configs:
+                if cfg.get("tag") == params:
+                    config = cfg.copy()
+                    break
+            if config:
+                if method == 'set':
+                    if config.get("functionCode") == 3:
+                        config['functionCode'] = 16
+                    else:
+                        config['functionCode'] = 15
+                break
+        return config
 
     def __process_device_rpc_request(self, rpc_request: RPCRequest):
         device = self.__get_device_by_name(rpc_request.device_name)
@@ -541,15 +549,32 @@ class AsyncModbusConnector(Connector, Thread):
     async def __process_rpc_request(self, device: Slave, config, data, with_response=False, result={}):
         try:
             if config is not None:
-                if config['functionCode'] in (5, 6, 15, 16):
-                    response = await self.__write_rpc_data(device, config, data)
-                elif config['functionCode'] in (1, 2, 3, 4):
-                    response = await self.__read_rpc_data(device, config)
-                else:
-                    response = 'Unsupported function code in RPC request.'
+                if isinstance(config,dict):
+                    if config['functionCode'] in (5, 6, 15, 16):
+                        response = await self.__write_rpc_data(device, config, data.value["data"]["params"])
+                    elif config['functionCode'] in (1, 2, 3, 4):
+                        response = await self.__read_rpc_data(device, config)
+                    else:
+                        response = 'Unsupported function code in RPC request.'
 
-                if data.can_return_response():
-                    result['response'] = self.__send_rpc_response(data, response, with_response)
+                    if data.can_return_response():
+                        result['response'] = self.__send_rpc_response(data, response, with_response)
+
+                elif isinstance(config, list):
+                    responses = []
+                    for i, _config_ in enumerate(config):
+                        if _config_['functionCode'] in (5, 6, 15, 16):
+                            response = await self.__write_rpc_data(device, _config_, data.value["data"]["params"][i])
+                        elif _config_['functionCode'] in (1, 2, 3, 4):
+                            response = await self.__read_rpc_data(device, _config_)
+                        else:
+                            response = 'Unsupported function code in RPC request.'
+
+                        responses.append(response)
+
+                    if data.can_return_response():
+                        result['response'] = self.__send_rpc_response(data, responses, with_response)
+
         except Exception as e:
             self.__log.error('Failed to process rpc request: %r', e)
             result['response'] = {'error': e.__repr__()}
@@ -586,7 +611,7 @@ class AsyncModbusConnector(Connector, Thread):
             address=config.get(ADDRESS_PARAMETER)
         )
 
-        converted_data = device.downlink_converter.convert(config, data.value)
+        converted_data = device.downlink_converter.convert(config, data)
 
         if config.function_code in (5, 6):
             try:

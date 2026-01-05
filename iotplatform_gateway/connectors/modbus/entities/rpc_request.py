@@ -108,30 +108,47 @@ class RPCRequest:
                     input_params_and_value_list = input_params_and_value_list[0].split(';value=')
                 if len(input_params_and_value_list) == 1:
                     input_params_and_value_list = input_params_and_value_list[0].split(';value')
+                if len(input_params_and_value_list) == 1:
+                    input_params_and_value_list = input_params_and_value_list[0].split('&&')
+                if len(input_params_and_value_list) == 1:
+                    input_params_and_value_list = input_params_and_value_list[0].split('=')
                 input_params_and_value_list[1] = input_params_and_value_list[1].replace(";", '')
             if len(input_params_and_value_list) < 2:
                 raise ValueError('Invalid RPC request format. '
                                  'Expected RPC request format: '
                                  'set param_name1=param_value1;param_name2=param_value2;...; value')
 
-            (input_params, input_value) = input_params_and_value_list
-            self._value = input_value
+            if '=' in input_params_and_value_list[0]:
+                (input_params, input_value) = map(list, zip(*(s.split('=') for s in input_params_and_value_list)))
+                self.params = input_params
+                self._value = input_value
+                return
+            else:
+                (input_params, input_value) = input_params_and_value_list
+                self._value = input_value
 
         if self.method == 'get':
             input_params = content.get(DATA_PARAMETER, {}).get(RPC_PARAMS_PARAMETER, {})
+            #add batch get
+            if ',' in input_params:
+                self.params = input_params.split(',')
+                return
 
-        for param in input_params.split(';'):
-            try:
-                (key, value) = param.split('=')
-            except ValueError:
-                continue
+        if isinstance(input_params,str):
+            for param in input_params.split(';'):
+                try:
+                    (key, value) = param.split('=')
+                except ValueError:
+                    continue
 
-            if key and value:
-                params[key] = value if key not in ('functionCode', 'objectsCount', 'address') else int(
-                    value)
+                if key and value:
+                    params[key] = value if key not in ('functionCode', 'objectsCount', 'address') else int(
+                        value)
 
         if not params: #用于后续判断如果是通过键名执行读写
             params = content.get(DATA_PARAMETER, {}).get(RPC_PARAMS_PARAMETER, {}).split(" ")[0]
+            if '=' in params:
+                params = params.split('=')[0]
         self.params = params
 
     def can_return_response(self):
@@ -139,3 +156,4 @@ class RPCRequest:
 
     def for_existing_device(self):
         return not self.params.get('host') and not self.params.get('port') and not self.params.get('unitId')
+

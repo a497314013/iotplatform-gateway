@@ -40,15 +40,18 @@ class TBUpdater:
         self.__check_period = 3600.0
         self.__request_timeout = (1,2)
         self.__stopped = True
-        Thread(target=self.check_for_new_version, daemon=True).start()
+
+        #disable update
+        #Thread(target=self.check_for_new_version, daemon=True).start()
 
     def stop(self):
         self.__stopped = True
 
     def get_version(self):
-        if time() >= self.__previous_check + self.__check_period:
-            Thread(target=self.check_for_new_version, daemon=True).start()
-            self.__previous_check = time()
+        # disable update
+        # if time() >= self.__previous_check + self.__check_period:
+        #     Thread(target=self.check_for_new_version, daemon=True).start()
+        #     self.__previous_check = time()
         return self.__version
 
     def get_platform(self):

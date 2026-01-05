@@ -31,7 +31,7 @@ class BytesModbusDownlinkConverter(ModbusConverter):
                              "32float": builder.add_32bit_float,
                              "64float": builder.add_64bit_float}
 
-        value = data["data"]["params"]
+        value = data
 
         if config.lower_type == "error":
             self._log.error('"type" and "tag" - not found in configuration.')
@@ -85,6 +85,8 @@ class BytesModbusDownlinkConverter(ModbusConverter):
 
         if function_code in builder_converting_functions:
             builder = builder_converting_functions[function_code]()
+            if lower_type == "string":
+                return builder[:config.objects_count] + [0] * max(0, config.objects_count - len(builder))
             self._log.debug("Created builder %r.", builder)
             if "Exception" in str(builder):
                 self._log.exception(builder)
